@@ -1,0 +1,14 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+ehthumbs.db
+Thumbs.db
+
+# Source code and database #
+############################
+/Result/*
+/Backup/*
+*.sql
+*.pyc
