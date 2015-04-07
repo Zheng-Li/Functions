@@ -7,9 +7,9 @@ import socket
 import random
 import gspread
 from geolocation import send_request_by_location
-from upload import upload_location
-from upload import upload_job
-from upload import update_job
+from sql_upload import upload_location
+from sql_upload import upload_job
+from sql_upload import update_job
 import time
 from time import sleep
 import sys
@@ -20,8 +20,8 @@ WARNING_SIGN = ['illegal', 'apologize', 'sorry','no longer available', 'not foun
 URL_SIGN = ['jobvite','icims','taleo', 'jobs.brassring.com']
 
 def login(sheet_name) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open(sheet_name)
+	gs = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	sh = gs.open(sheet_name)
 	return  sh
 
 def csv_input(csv_file) :
@@ -39,7 +39,7 @@ def csv_output(data_list, csv_file) :
 def sheet_input(spreadsheet, sheetname) :
 	worksheet = spreadsheet.worksheet(sheetname)
 	data_list = worksheet.get_all_values()
-	data_list.pop(0)
+	data_list.pop(0) # Remove header row 
 
 	# Insert organization name
 	for data in data_list :
@@ -58,7 +58,7 @@ def special_url_check(url) :
 			return True
 	return False 
 
-def keyword_search(url_page) :
+def keyword_search(site_url) :
 	keyword_tag = []
 	
 	# Remove HTML tags from page
@@ -68,7 +68,7 @@ def keyword_search(url_page) :
 	re_br=re.compile('<br\s*?/?>')
 	re_h=re.compile('</?\w+[^>]*>')
 	re_comment=re.compile('<!--[^>]*-->')
-	s=re_cdata.sub('',url_page)
+	s=re_cdata.sub('',site_url)
 	s=re_script.sub('',s)
 	s=re_style.sub('',s)
 	s=re_br.sub('\n',s)
@@ -99,6 +99,7 @@ def url_parse(rec, url_col) :
 	if not (url.startswith('http://') or url.startswith('https://')) :
 		url = 'http://' + url
 
+	# Rearrage data from spreadsheet
 	if url_col == 3 :
 		result.append(rec[0]) # Organization name
 		result.append(rec[4])
@@ -118,7 +119,6 @@ def url_parse(rec, url_col) :
 	else :
 		result = rec
 
-	# Special url
 	if not special_url_check(url) :
 		try :
 			page = urllib2.urlopen(url, timeout = 10)
@@ -126,7 +126,7 @@ def url_parse(rec, url_col) :
 				result.append(page.getcode())
 				csv_output([result], 'Result/Error.csv')
 				return result
-			tags = ','.join(keyword_search(page.read()))
+			tags = ','.join(keyword_search(result[1]+page.read())) # Job Title + Web page
 			result.append(tags)
 			if 'Warning' in tags :
 				csv_output([result], 'Result/Warning.csv')
@@ -174,7 +174,7 @@ if __name__ == '__main__':
 	# 	# print result
 
 
-	raw_key = csv_input('keys.csv')
+	raw_key = csv_input('keywords.csv')
 	for key in raw_key :
 		keywords.append(key[0].lower())
 	print 'Keys....Done'
@@ -210,7 +210,6 @@ if __name__ == '__main__':
 # def url_setup_sheet(sheet) :
 # 	worksheet = sheet.worksheet('Copy of CR')
 # 	url_list = worksheet.col_values(4)
-# 	url_list.pop(0)
 # 	return url_list
 
 # def keyword_setup_by_keyboard () :
