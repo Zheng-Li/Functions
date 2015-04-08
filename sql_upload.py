@@ -2,13 +2,17 @@ import MySQLdb
 import csv
 
 def upload_location(data) :
-	f = open('location.sql', 'a')
-	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'%s\', \'%s\', \'%s\', \'%s\', %s, %s) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);''' %(MySQLdb.escape_string(data[0]), MySQLdb.escape_string(data[1]), MySQLdb.escape_string(data[2]), MySQLdb.escape_string(data[3]), float(data[4]), float(data[5]))
+	f = open('Result/location.sql', 'a')
+	data[0] = MySQLdb.escape_string(data[0].strip())
+	data[1] = MySQLdb.escape_string(data[1].strip())
+	data[2] = MySQLdb.escape_string(data[2].strip())
+	data[3] = MySQLdb.escape_string(data[3].strip())
+	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[1]}\', \'{0[2]}\', \'{0[3]}\', \'{0[4]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
 	f.write(sql + '\n')
 	print data
 
 def upload_job(data) :
-	f = open('jobs.sql', 'a')
+	f = open('Result/jobs.sql', 'a')
 	data[0] = MySQLdb.escape_string(data[0].strip())
 	data[1] = MySQLdb.escape_string(data[1].strip())
 	data[2] = MySQLdb.escape_string(data[2].strip())
@@ -27,7 +31,7 @@ def upload_job(data) :
 
 
 def update_job(data) :
-	f = open('update.sql', 'a')
+	f = open('Result/update.sql', 'a')
 	data[0] = MySQLdb.escape_string(data[0].strip())
 	data[1] = MySQLdb.escape_string(data[1].strip())
 	data[2] = MySQLdb.escape_string(data[2].strip())
