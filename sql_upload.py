@@ -7,7 +7,7 @@ def upload_location(data) :
 	data[1] = MySQLdb.escape_string(data[1].strip())
 	data[2] = MySQLdb.escape_string(data[2].strip())
 	data[3] = MySQLdb.escape_string(data[3].strip())
-	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[1]}\', \'{0[2]}\', \'{0[3]}\', \'{0[4]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
+	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
 	f.write(sql + '\n')
 	print data
 

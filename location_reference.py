@@ -51,11 +51,11 @@ abbr = {
 	'WV' :	'West Virginia',
 	'WI' :	'Wisconsin',
 	'WY' :	'Wyoming',
+	'DC' :	'District of Columbia',
 	'NS' :	'Nova Scotia',
 	'NB' :	'New Brunswick',
 	'ON' :	'Ontario',
 	'BC' :	'British Columbia',
-	'DC' :	'District of Columbia',
 	'QC' :	'Quebec',
 }
 
