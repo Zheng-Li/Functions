@@ -10,7 +10,6 @@ from geolocation import send_request_by_location
 from sql_upload import upload_location
 from location_reference import get_abbrevation
 
-
 AETNA=MySQLdb.escape_string('<p>For job details and to Apply: <a href="https://www.aetna.com/about-us/aetna-careers.html">Click Here</a></p><p>Click Apply for Jobs Online to navigate to Search Openings. Enter Req # or Job Title and Search.</p>')
 AMWAY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.brassring.com/EN/ASP/TG/cim_home.asp?sec=1&PartnerId=8647&SiteId=33&codes">Click Here</a></p><p>Click Search Career / Internship Opportunities.</p>')
 FIDELITY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.fidelity.com/apply-now/search-jobs.html">Click Here</a></p><p>Enter Job # or Job Title and Search.</p>')
