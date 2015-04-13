@@ -32,11 +32,15 @@ def table_parse(page) :
 	soup = BeautifulSoup(page)
 	table = soup.findChildren('table')[0]
 
+	heads = table.findChildren(['th'])
 	rows = table.findChildren(['tr'])
-	rows.pop(0)
+
+	rows.pop(0) # Pop first row when it is the head
+
 	for row in rows :
-		tmp = []
+		tmp = [] # organized data record
 		cells = row.findChildren('td')
+		# cells.pop(0) # Pop first cell when there is special flag/symbol/space
 		for cell in cells :
 			if cell.string is not None :
 				value = cell.string
@@ -78,7 +82,10 @@ def update_spreadsheet(data) :
 		worksheet.update_cells(cell_list)
 
 if __name__ == '__main__':
-	url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
+	# url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
+	url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
+	
 	page = url_parse(url)
-	result = table_parse(page)
-	update_spreadsheet(result)
+	print page
+	# result = table_parse(page)
+	# update_spreadsheet(result)
