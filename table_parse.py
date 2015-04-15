@@ -8,6 +8,9 @@ import gspread
 import time
 from location_reference import get_abbrevation
 from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
 from BeautifulSoup import BeautifulSoup
 from time import sleep
 import sys
@@ -103,12 +106,10 @@ def parse_javascript(url) :
 
 	browser = webdriver.Firefox()
 	browser.get(url)
-	browser.implicitly_wait(2)
+	browser.implicitly_wait(3)
 	page_count = 1
 
-	while browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a") is not None :
-		button = browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-
+	while browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3] is not None :
 		records = []
 		table = browser.find_elements_by_tag_name("table")[2]
 		jobs = table.find_element_by_tag_name("tbody").find_elements_by_tag_name("tr")
@@ -120,10 +121,13 @@ def parse_javascript(url) :
 			record = [title, url] + intel_location(location) +  [posted]
 			records.append(record)
 			print record
+
 		update_spreadsheet(records, page_count)
 		page_count = page_count + 1
+		button = browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
 		button.click()
-		browser.implicitly_wait(2)
+
+		WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
 
 	browser.quit()
 	return records
