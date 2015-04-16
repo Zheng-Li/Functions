@@ -5,12 +5,13 @@ import socket
 import HTMLParser
 import random
 import gspread
+import csv
 import time
 from location_reference import get_abbrevation
 from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from BeautifulSoup import BeautifulSoup
 from time import sleep
 import sys
@@ -31,6 +32,11 @@ def url_parse(url) :
 		print 'Socket error!'
 	except (IOError, httplib.HTTPException):
 		print 'Unknown error!'
+
+def csv_output(data_list, csv_file) :
+	csv_writer = csv.writer(open(csv_file, 'ab'))
+	for row in data_list :
+		csv_writer.writerow(row)
 
 def table_parse(page) :
 	data = []
@@ -110,6 +116,7 @@ def parse_javascript(url) :
 	page_count = 1
 
 	while browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3] is not None :
+		browser.implicitly_wait(3)
 		records = []
 		table = browser.find_elements_by_tag_name("table")[2]
 		jobs = table.find_element_by_tag_name("tbody").find_elements_by_tag_name("tr")
@@ -123,11 +130,12 @@ def parse_javascript(url) :
 			print record
 
 		update_spreadsheet(records, page_count)
+		csv_output(records, 'Result/intel.csv')
 		page_count = page_count + 1
-		button = browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-		button.click()
 
-		WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
+		pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
+		button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
+		button.click()
 
 	browser.quit()
 	return records
