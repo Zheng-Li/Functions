@@ -81,14 +81,6 @@ def update_spreadsheet(data, loc) :
 	sh = gc.open('Test')
 	worksheet = sh.worksheet('Intel')
 
-	# Header
-	# cell_list = worksheet.range('A1:E1')
-	# cell_values = ['Job Title', 'Job Url', 'Posted on', 'Country', 'State-City']
-	# for i, val in enumerate(cell_values):  #gives us a tuple of an index and value
-	#     cell_list[i].value = val    #use the index on cell_list and the val from cell_values
-	# worksheet.update_cells(cell_list)
-
-	# Data
 	for x, row in enumerate(data) :
 		num = x + 2 + 25*(loc-1)
 		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
@@ -96,49 +88,59 @@ def update_spreadsheet(data, loc) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
 
-def parse_javascript(url) :
-	# soup = BeautifulSoup(page) 
-	# js  = soup.findAll("script")
-	# for j in js :
-	# 	ss = j.prettify()
-	# 	print ss
+# def parse_javascript(url) :
 
-	# header = []
-	# headers = table.find_element_by_tag_name("thead").find_element_by_tag_name("tr").find_elements_by_tag_name("th")
-	# for h in headers :
-	# 	tmp = h.text
-	# 	header.append(tmp)
-	# print head
+# 	for page_count in range(1, 10) :
+# 		browser = webdriver.Firefox()
+# 		browser.get(url)
 
-	browser = webdriver.Firefox()
-	browser.get(url)
-	browser.implicitly_wait(3)
-	page_count = 1
+# 		pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
+# 		for i in range(1, page_count) :
+# 			pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
+# 			button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
+# 			button.click()
 
-	while browser.find_element_by_id("jobPager").find_elements_by_tag_name("span")[3] is not None :
-		browser.implicitly_wait(3)
+# 		records = []
+# 		table = browser.find_elements_by_tag_name("table")[2].find_element_by_tag_name("tbody")
+# 		jobs = table.find_elements_by_tag_name("tr")
+# 		for j in jobs:
+# 			job_title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
+# 			job_url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
+# 			job_location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+# 			job_posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+# 			record = [job_title, job_url] + intel_location(job_location) +  [job_posted]
+# 			records.append(record)
+# 			print record
+
+# 		update_spreadsheet(records, page_count)
+# 		csv_output(records, 'Result/intel.csv')
+# 		browser.quit()
+
+def parse_javascript(url, page) :
+		browser = webdriver.Firefox()
+		browser.get(url)
+
+		for i in range(1, page) :
+			pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
+			button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
+			button.click()
+
 		records = []
-		table = browser.find_elements_by_tag_name("table")[2]
-		jobs = table.find_element_by_tag_name("tbody").find_elements_by_tag_name("tr")
+		WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "searchresults")))
+		table = browser.find_elements_by_tag_name("table")[2].find_element_by_tag_name("tbody")
+		jobs = table.find_elements_by_tag_name("tr")
 		for j in jobs:
-			title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
-			url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
-			location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-			posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-			record = [title, url] + intel_location(location) +  [posted]
+			job_title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
+			job_url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
+			job_location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+			job_posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+			record = [job_title, job_url] + intel_location(job_location) +  [job_posted]
 			records.append(record)
 			print record
 
-		update_spreadsheet(records, page_count)
+		update_spreadsheet(records, page)
 		csv_output(records, 'Result/intel.csv')
-		page_count = page_count + 1
-
-		pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
-		button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-		button.click()
-
-	browser.quit()
-	return records
+		browser.quit()
 
 def intel_location(location) :
 	if location == 'Multiple Locations' :
@@ -163,14 +165,14 @@ def intel_location(location) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-
 	# url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
-	url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
-	
-	page = url_parse(url)
-	data = parse_javascript(url)
 	# result = table_parse(page)
 
+	url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
+	page = url_parse(url)
+
+	for i in range(1, 80) :
+		parse_javascript(url, i)
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	
