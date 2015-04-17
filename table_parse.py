@@ -171,8 +171,9 @@ if __name__ == '__main__':
 	url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
 	page = url_parse(url)
 
-	for i in range(1, 80) :
-		parse_javascript(url, i)
+	parse_javascript(url, 60) # Certain page
+	# for i in range(76, 80) :
+	# 	parse_javascript(url, i)
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	
