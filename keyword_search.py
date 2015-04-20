@@ -58,7 +58,7 @@ def special_url_check(url) :
 			return True
 	return False 
 
-def keyword_search(site_url) :
+def keyword_search(site_page, keyword_dict) :
 	keyword_tag = []
 	
 	# Remove HTML tags from page
@@ -68,7 +68,7 @@ def keyword_search(site_url) :
 	re_br=re.compile('<br\s*?/?>')
 	re_h=re.compile('</?\w+[^>]*>')
 	re_comment=re.compile('<!--[^>]*-->')
-	s=re_cdata.sub('',site_url)
+	s=re_cdata.sub('',site_page)
 	s=re_script.sub('',s)
 	s=re_style.sub('',s)
 	s=re_br.sub('\n',s)
@@ -83,7 +83,7 @@ def keyword_search(site_url) :
 			return ['Warning: ' + sign]
 
 
-	for ky in keywords :
+	for ky in keyword_dict :
 		ky = ky.strip()
 		reg = '\\b' + ky + '\\b'
 		re.search(reg, s)  
