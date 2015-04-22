@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import requests
 import gspread
 import time
 import urllib2
 import re
-from BeautifulSoup import BeautifulSoup
+import MySQLdb
+from bs4 import BeautifulSoup
 from geolocation import send_request_by_location
 from sql_upload import upload_location
 from keyword_search import keyword_search
@@ -82,52 +84,82 @@ def get_keyword_lib() :
 		result.append(k.lower())
 	return result
 
+def sql_upload() :
+	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	job_sh = gc.open('Zheng: Jobs for Upload: April 17_2015_Project7')
+
+	for x in range(0, 9) :
+		sheet = job_sh.get_worksheet(x)
+		data = sheet.get_all_values()
+		data.pop(0)
+		for row in data :
+			row[0] = MySQLdb.escape_string(row[0].strip())
+			row[1] = MySQLdb.escape_string(row[1].strip())
+			row[2] = MySQLdb.escape_string(row[2].strip())
+			row[3] = MySQLdb.escape_string(row[3].strip())
+			row[4] = MySQLdb.escape_string(row[4].strip())
+			row[5] = MySQLdb.escape_string(row[5].strip())
+			row[6] = MySQLdb.escape_string(row[6].strip())
+			row[7] = MySQLdb.escape_string(row[7].strip())
+			row[8] = MySQLdb.escape_string(row[8].strip())
+			row[9] = MySQLdb.escape_string(row[9].strip())
+			if row[9] == 'Job Not Found' :
+				continue
+			# job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' AND NOT EXISTS (SELECT 1 FROM zd_new_job as job WHERE Title = \'{0[1]}\' AND job.Org_id = org1.ID AND job.Loc_id = loc1.ID AND job.Url = \'{0[2]}\');'''.format(row)
+			job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
+			print job_sql
+
+
 if __name__ == '__main__':
 	start_time = time.time()
 
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
 	job_sh = gc.open('Zheng: Jobs for Upload: April 17_2015_Project7')
-	# worksheet = job_sh.worksheet('Accor')
-	# worksheet = job_sh.worksheet('Acne Studios')
-	# worksheet = job_sh.worksheet('Acxiom')
-	# worksheet = job_sh.worksheet('Airbnb, Inc.')
-	# worksheet = job_sh.worksheet('American Rivers')
-	# worksheet = job_sh.worksheet('Associated Bank')
-	# worksheet = job_sh.worksheet('Amnesty International')
-	# worksheet = job_sh.worksheet('Baxter International Inc.')
-	# worksheet = job_sh.worksheet('Orbital ATK Inc.')
 
-	sh_list = job_sh.worksheets()
-	keyword_lib = get_keyword_lib()
-	# print keyword_lib
-	for sh in sh_list :
-		raw_data = sh.get_all_values()
-		raw_data.pop(0)
-		for x, val in enumerate(raw_data) :
-			title = sh.acell('B'+str(x+2)).value
-			url = sh.acell('C'+str(x+2)).value
-			# status = url_check(url)
-			snippet = sh.acell('I'+str(x+2)).value
-			if not check_job_valid(url):
-				tags = 'Job Not Found' 
-			else :
-				text = title + snippet 
-				tags = keyword_search(title, keyword_lib)
-			print 'No.' + str(x) + ' ,' +  url + '.......' + ','.join(tags)
-			# sh.update_acell('H'+str(x+2), status)
-			sh.update_acell('J'+str(x+2), ','.join(tags))
+	# sh_list = job_sh.worksheets()
+	# keyword_lib = get_keyword_lib()
+	# # print keyword_lib
+	# for sh in sh_list :
+	# 	raw_data = sh.get_all_values()
+	# 	raw_data.pop(0)
+	# 	for x, val in enumerate(raw_data) :
+	# 		title = sh.acell('B'+str(x+2)).value
+	# 		url = sh.acell('C'+str(x+2)).value
+	# 		# status = url_check(url)
+	# 		snippet = sh.acell('I'+str(x+2)).value
+	# 		if not check_job_valid(url):
+	# 			tags = ['Job Not Found'] 
+	# 		else :
+	# 			text = title + snippet 
+	# 			tags = keyword_search(text, keyword_lib)
+	# 		print 'No.' + str(x) + ' ,' +  url + '.......' + ','.join(tags)
+	# 		# sh.update_acell('H'+str(x+2), status)
+	# 		sh.update_acell('J'+str(x+2), ','.join(tags))
+
+	sql_upload()
+	# sh = job_sh.worksheet('Orbital ATK Inc.')
+
+	# header = {'User-Agent': 'Mozilla/5.0'}
+	# raw_data = sh.get_all_values()
+	# raw_data.pop(0)
+	# for x, val in enumerate(raw_data) :
+	# 	url = sh.acell('C'+str(x+2)).value
+	# 	request = urllib2.Request(url, headers=header)
+	# 	soup = BeautifulSoup(urllib2.urlopen(request).read())
+	# 	snippet = soup.find('span', {'itemprop' : 'description'})
+	# 	if snippet is not None :
+	# 	# [a.extract() for a in snippet('a')]
+	# 	# [s.extract() for s in snippet('script')]
+	# 		for tag in snippet.find_all('a'):
+	# 		    tag.replaceWith('')
+	# 		for tag in snippet.find_all('script'):
+	# 		    tag.replaceWith('')
+	# 		print str(x) + '.......' + snippet.text
+	# 		sh.update_acell('I'+str(x+2), snippet)
 
 
-	# for x in range(2, 38) :
-	# 	url = worksheet.acell('C'+str(x)).value
-	# 	status = url_check(url)
-	# 	snippet = get_job_snippet(url)
-	# 	tags = keyword_seach(snippet, snippet)
-	# 	print 'No.' + str(x) + ' ,' +  url + '.......' + str(status) 
-	# 	worksheet.update_acell('H'+str(x), status)
-	# 	worksheet.update_acell('I'+str(x), snippet)
-	# 	worksheet.update_acell('J'+str(x), tags)
 
+	# -------------- Location check ------------------
 	# result = get_locations(job_sh)
 	# worksheet = job_sh.worksheet("Locations")
 	# for x, item in enumerate(result) :
@@ -135,6 +167,12 @@ if __name__ == '__main__':
 	# 	for i, val in enumerate(item) :
 	# 		cell_list[i].value = val
 	# 	worksheet.update_cells(cell_list)
+
+	# ------------- Keyword check -----------------
+	# keyword_lib = get_keyword_lib()
+	# snippet = ''''''
+	# tags = keyword_search(snippet, keyword_lib)
+	# print ','.join(tags)	
 
 
 	print("--- %s seconds ---" % (time.time() - start_time))
