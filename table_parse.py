@@ -88,34 +88,6 @@ def update_spreadsheet(data, loc) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
 
-# def parse_javascript(url) :
-
-# 	for page_count in range(1, 10) :
-# 		browser = webdriver.Firefox()
-# 		browser.get(url)
-
-# 		pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
-# 		for i in range(1, page_count) :
-# 			pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
-# 			button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-# 			button.click()
-
-# 		records = []
-# 		table = browser.find_elements_by_tag_name("table")[2].find_element_by_tag_name("tbody")
-# 		jobs = table.find_elements_by_tag_name("tr")
-# 		for j in jobs:
-# 			job_title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
-# 			job_url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
-# 			job_location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-# 			job_posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-# 			record = [job_title, job_url] + intel_location(job_location) +  [job_posted]
-# 			records.append(record)
-# 			print record
-
-# 		update_spreadsheet(records, page_count)
-# 		csv_output(records, 'Result/intel.csv')
-# 		browser.quit()
-
 def parse_javascript(url, page) :
 		browser = webdriver.Firefox()
 		browser.get(url)
@@ -171,7 +143,8 @@ if __name__ == '__main__':
 	url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
 	page = url_parse(url)
 
-	parse_javascript(url, 60) # Certain page
+	# ------------- Taleo Site Table parse ---------------
+	# parse_javascript(url, 60) # Certain page
 	# for i in range(76, 80) :
 	# 	parse_javascript(url, i)
 

@@ -2,6 +2,7 @@ import MySQLdb
 import csv
 
 def upload_location(data) :
+	# data is <City, State,  Abbreviation, Country, Latitude, Longitude>
 	f = open('Result/location.sql', 'a')
 	data[0] = MySQLdb.escape_string(data[0].strip())
 	data[1] = MySQLdb.escape_string(data[1].strip())
@@ -12,6 +13,7 @@ def upload_location(data) :
 	print data
 
 def upload_job(data) :
+	# data is <Organization name, Title, Url, City, Abbreviation, Country, Expired_on, tags>
 	f = open('Result/jobs.sql', 'a')
 	data[0] = MySQLdb.escape_string(data[0].strip())
 	data[1] = MySQLdb.escape_string(data[1].strip())
@@ -23,14 +25,10 @@ def upload_job(data) :
 	data[7] = MySQLdb.escape_string(data[7].strip())
 	job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[7]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' AND NOT EXISTS (SELECT 1 FROM zd_new_job as job WHERE Title = \'{0[1]}\' AND job.Org_id = org1.ID AND job.Loc_id = loc1.ID AND job.Url = \'{0[2]}\');'''.format(data)
 	f.write(job_sql + '\n')
-	# f2 = open('jobs_tags.sql', 'a')
-	# tags = data[7].split(',')
-	# for tag in tags :
-	# 	tag_sql = '''INSERT INTO zd_new_job_tag (ID, Tag) VALUES (LAST_INSERT_ID(), \'%s\');''' %(tag)
-	# 	f2.write(tag_sql + '\n')
 
 
 def update_job(data) :
+	# data is <Organization name, Title, Url, City, Abbreviation, Country, Expired_on, tags>
 	f = open('Result/update.sql', 'a')
 	data[0] = MySQLdb.escape_string(data[0].strip())
 	data[1] = MySQLdb.escape_string(data[1].strip())
@@ -47,10 +45,6 @@ def update_job(data) :
 if __name__ == '__main__':
 	database = MySQLdb.connect(host = '127.0.0.1', user = 'db_admin', passwd = 'pusEgu5U', db = 'zoomdojo', port = 3307)
 	cursor = database.cursor()
-
-	data = read_file('geolocation.csv')
-	for item in data :
-		upload_location(item)
 
 	cursor.close()
 	database.close()

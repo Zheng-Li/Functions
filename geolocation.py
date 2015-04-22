@@ -71,29 +71,23 @@ def parse_json(code) :
 
 def update_spreadsheet() :
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open('Test Project')
+	sh = gc.open('Test')
 
-	# worksheet = sh.worksheet('States Short_Canada_Australia')
-	# for i in range(4, 17) :
-	# 	# state = worksheet.acell('B' + str(i)).value
-	# 	# country = 'Canada'
-	# 	# x = ['', state, country]
-	# 	# send_request_by_record(x)
-	# 	# worksheet.update_acell('C' + str(i), x[3])
-	# 	# worksheet.update_acell('D' + str(i), x[4])
-	# 	data = ['', worksheet.acell('A'+str(i)).value, worksheet.acell('B'+str(i)).value, 'Canada', worksheet.acell('C'+str(i)).value, worksheet.acell('D'+str(i)).value]
-	# 	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
-	# 	print sql
-	# for j in range(20, 30) :
-	# 	# state = worksheet.acell('B' + str(j)).value
-	# 	# country = 'Australia'
-	# 	# y = ['', state, country]
-	# 	# send_request_by_record(y)
-	# 	# worksheet.update_acell('C' + str(j), y[3])
-	# 	# worksheet.update_acell('D' + str(j), y[4])
-	# 	data = ['', worksheet.acell('A'+str(j)).value, worksheet.acell('B'+str(j)).value, 'Australia', worksheet.acell('C'+str(j)).value, worksheet.acell('D'+str(j)).value]
-	# 	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
-	# 	print sql
+	worksheet = sh.worksheet('Location')
+	raw_data = worksheet.get_all_values()
+
+	worksheet = sh.worksheet('Location')
+	for i in range(138, 209) :
+		city = worksheet.acell('A' + str(i)).value
+		abbr = worksheet.acell('C' + str(i)).value
+		country = worksheet.acell('D' + str(i)).value
+		
+		tmp = send_request_by_location(city, abbr, country)
+		worksheet.update_acell('B' + str(i), tmp[1])
+		worksheet.update_acell('E' + str(i), tmp[4])
+		worksheet.update_acell('F' + str(i), tmp[5])
+		sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(tmp, float(tmp[4]), float(tmp[5]))
+		print sql
 
 if __name__ == "__main__":
    # main(sys.argv[1:])
@@ -101,24 +95,26 @@ if __name__ == "__main__":
 
 
 
-   # ------------- Test Location ----------------
-   loc1 = send_request_by_location('Borgerhout', '', 'Belgium')
-   loc2 = send_request_by_location('Midi', '', 'Belgium')
-   sql1 = 'UPDATE zd_new_location SET City = \'{0[0]}\', Latitude = {1}, Longitude = {2} WHERE City = \'Gitschotel\' AND Country = \'Belgium\';'.format(loc1, float(loc1[4]), float(loc1[5]))
-   sql2 = 'UPDATE zd_new_location SET City = \'{0[0]}\', Latitude = {1}, Longitude = {2} WHERE City = \'Kantorengroep Midi\' AND Country = \'Belgium\';'.format(loc2, float(loc2[4]), float(loc2[5]))
-   print sql1
-   print sql2
 
 
-
-
-
-
-
+	# ------------- Test Location ----------------
+	# loc = send_request_by_location('Borgerhout', '', 'Belgium')
+	# sql = 'UPDATE zd_new_location SET City = \'{0[0]}\', Latitude = {1}, Longitude = {2} WHERE City = \'Gitschotel\' AND Country = \'Belgium\';'.format(loc, float(loc[4]), float(loc[5]))
+	# print sql
 
 
 
 # ---------------------- Useful File Update------------------------
+
+# SQL = '''
+# 	SELECT City, State, Abbreviation, Country
+# 	INTO OUTFILE '/tmp/location_fix_1.csv'
+# 	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+#   	LINES TERMINATED BY '\n'
+# 	FROM zd_new_location
+# 	WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
+# 	'''
+
 # def main(argv):
 # 	input_file = ''
 # 	output_file = ''

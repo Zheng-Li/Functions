@@ -18,11 +18,11 @@ def url_check(url) :
 	    r = requests.head(url)
 	    return r.status_code
 	except requests.ConnectionError:
-	    return "failed to connect"
+	    return "Unknown Error"
 
 def get_locations(sh) :
 	locations = []
-	for i in range(0, 9) :
+	for i in range(0, 16) :
 		sheet = sh.get_worksheet(i)
 		raw_data = sheet.get_all_values()
 		raw_data.pop(0)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 	start_time = time.time()
 
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open('Zheng: Jobs for Upload: April 17_2015_Project7')
+	job_sh = gc.open('Project 8 Copy')
 
 	# sh_list = job_sh.worksheets()
 	# keyword_lib = get_keyword_lib()
@@ -125,20 +125,22 @@ if __name__ == '__main__':
 	# 	for x, val in enumerate(raw_data) :
 	# 		title = sh.acell('B'+str(x+2)).value
 	# 		url = sh.acell('C'+str(x+2)).value
-	# 		# status = url_check(url)
-	# 		snippet = sh.acell('I'+str(x+2)).value
-	# 		if not check_job_valid(url):
-	# 			tags = ['Job Not Found'] 
-	# 		else :
-	# 			text = title + snippet 
-	# 			tags = keyword_search(text, keyword_lib)
-	# 		print 'No.' + str(x) + ' ,' +  url + '.......' + ','.join(tags)
-	# 		# sh.update_acell('H'+str(x+2), status)
-	# 		sh.update_acell('J'+str(x+2), ','.join(tags))
+	# 		status = url_check(url)
+	# 		# snippet = sh.acell('I'+str(x+2)).value
+	# 		# if not check_job_valid(url):
+	# 		# 	tags = ['Job Not Found'] 
+	# 		# else :
+	# 		# 	text = title + snippet 
+	# 		# 	tags = keyword_search(text, keyword_lib)
+	# 		print 'No.' + str(x) + ', ' + title + '.......Done' 
+	# 		sh.update_acell('H'+str(x+2), status)
+	# 		# sh.update_acell('J'+str(x+2), ','.join(tags))
 
-	sql_upload()
+	# sql_upload()
+
+
+	-------------- Snippet update -----------------
 	# sh = job_sh.worksheet('Orbital ATK Inc.')
-
 	# header = {'User-Agent': 'Mozilla/5.0'}
 	# raw_data = sh.get_all_values()
 	# raw_data.pop(0)
@@ -158,7 +160,6 @@ if __name__ == '__main__':
 	# 		sh.update_acell('I'+str(x+2), snippet)
 
 
-
 	# -------------- Location check ------------------
 	# result = get_locations(job_sh)
 	# worksheet = job_sh.worksheet("Locations")
@@ -167,12 +168,5 @@ if __name__ == '__main__':
 	# 	for i, val in enumerate(item) :
 	# 		cell_list[i].value = val
 	# 	worksheet.update_cells(cell_list)
-
-	# ------------- Keyword check -----------------
-	# keyword_lib = get_keyword_lib()
-	# snippet = ''''''
-	# tags = keyword_search(snippet, keyword_lib)
-	# print ','.join(tags)	
-
 
 	print("--- %s seconds ---" % (time.time() - start_time))
