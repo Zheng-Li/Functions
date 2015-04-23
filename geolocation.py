@@ -92,10 +92,7 @@ def update_spreadsheet() :
 if __name__ == "__main__":
    # main(sys.argv[1:])
    # update_spreadsheet()
-
-
-
-
+   print 'What?'
 
 	# ------------- Test Location ----------------
 	# loc = send_request_by_location('Borgerhout', '', 'Belgium')

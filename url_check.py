@@ -139,25 +139,28 @@ if __name__ == '__main__':
 	# sql_upload()
 
 
-	-------------- Snippet update -----------------
-	# sh = job_sh.worksheet('Orbital ATK Inc.')
-	# header = {'User-Agent': 'Mozilla/5.0'}
-	# raw_data = sh.get_all_values()
-	# raw_data.pop(0)
-	# for x, val in enumerate(raw_data) :
-	# 	url = sh.acell('C'+str(x+2)).value
-	# 	request = urllib2.Request(url, headers=header)
-	# 	soup = BeautifulSoup(urllib2.urlopen(request).read())
-	# 	snippet = soup.find('span', {'itemprop' : 'description'})
-	# 	if snippet is not None :
-	# 	# [a.extract() for a in snippet('a')]
-	# 	# [s.extract() for s in snippet('script')]
-	# 		for tag in snippet.find_all('a'):
-	# 		    tag.replaceWith('')
-	# 		for tag in snippet.find_all('script'):
-	# 		    tag.replaceWith('')
-	# 		print str(x) + '.......' + snippet.text
-	# 		sh.update_acell('I'+str(x+2), snippet)
+	# -------------- Snippet update -----------------
+	sh = job_sh.worksheet('BNP Paribas 1')
+	header = {'User-Agent': 'Mozilla/5.0'}
+	raw_data = sh.get_all_values()
+	raw_data.pop(0)
+	for x, val in enumerate(raw_data) :
+		url = sh.acell('C'+str(x+2)).value
+		url_status = sh.acell('H'+str(x+2)).value
+		# print url + '...........' + str(url_status)
+		if url_status == '200' :
+			request = urllib2.Request(url, headers=header)
+			soup = BeautifulSoup(urllib2.urlopen(request).read())
+			snippet = soup.find('div', {'class' : 'offre-detail'})
+			# if snippet is not None :
+			# 	[a.extract() for a in snippet('a')]
+			# 	[s.extract() for s in snippet('script')]
+			for tag in snippet.find_all('a'):
+			    tag.replaceWith('')
+			for tag in snippet.find_all('script'):
+			    tag.replaceWith('')
+			print str(x) + '.......Done' 
+			sh.update_acell('I'+str(x+2), snippet)
 
 
 	# -------------- Location check ------------------
