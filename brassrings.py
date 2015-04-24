@@ -10,15 +10,15 @@ from geolocation import send_request_by_location
 from sql_upload import upload_location
 from location_reference import get_abbrevation
 
-AETNA=MySQLdb.escape_string('<p>For job details and to Apply: <a href="https://www.aetna.com/about-us/aetna-careers.html">Click Here</a></p><p>Click Apply for Jobs Online to navigate to Search Openings. Enter Req # or Job Title and Search.</p>')
-AMWAY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.brassring.com/EN/ASP/TG/cim_home.asp?sec=1&PartnerId=8647&SiteId=33&codes">Click Here</a></p><p>Click Search Career / Internship Opportunities.</p>')
-FIDELITY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.fidelity.com/apply-now/search-jobs.html">Click Here</a></p><p>Enter Job # or Job Title and Search.</p>')
-ADOBE=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://adobe.taleo.net/careersection/adobe_global/jobsearch.ftl?lang=en&location=6801372523&jobfield=0">Click Here</a></p><p>Enter Job # or Job Title in Keywords and Search.</p>')
-BAYER=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://career.bayer.us/en/job-search/?accessLevel=&functional_area=&country=US&location=&division=&fulltext=internship">Click Here</a></p><p>Click on Job Title</p>')
-SCHWAB=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://www.aboutschwab.com/work-at-schwab">Click Here</a></p><p>Click Start you job search.</p>  <p>Enter Job Title in Keywords and Search.</p>')
-GENERAL=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://www.gdcareers.com/gdchq_jobs/main.cfm?pg=search">Click Here</a></p><p>Enter Job ID # or Job Title and Search.</p>')
-WEYERHAUSER=MySQLdb.escape_string('<p>For job details and to Apply: <a href="https://weyerhaeuser.taleo.net/careersection/10000/jobdetail.ftl">Click Here</a></p><p>Enter Job # or Job Title and Search.</p>')
-INTEL=MySQLdb.escape_string('')
+# AETNA=MySQLdb.escape_string('<p>For job details and to Apply: <a href="https://www.aetna.com/about-us/aetna-careers.html">Click Here</a></p><p>Click Apply for Jobs Online to navigate to Search Openings. Enter Req # or Job Title and Search.</p>')
+# AMWAY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.brassring.com/EN/ASP/TG/cim_home.asp?sec=1&PartnerId=8647&SiteId=33&codes">Click Here</a></p><p>Click Search Career / Internship Opportunities.</p>')
+# FIDELITY=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://jobs.fidelity.com/apply-now/search-jobs.html">Click Here</a></p><p>Enter Job # or Job Title and Search.</p>')
+# ADOBE=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://adobe.taleo.net/careersection/adobe_global/jobsearch.ftl?lang=en&location=6801372523&jobfield=0">Click Here</a></p><p>Enter Job # or Job Title in Keywords and Search.</p>')
+# BAYER=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://career.bayer.us/en/job-search/?accessLevel=&functional_area=&country=US&location=&division=&fulltext=internship">Click Here</a></p><p>Click on Job Title</p>')
+# SCHWAB=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://www.aboutschwab.com/work-at-schwab">Click Here</a></p><p>Click Start you job search.</p>  <p>Enter Job Title in Keywords and Search.</p>')
+# GENERAL=MySQLdb.escape_string('<p>For job details and to Apply: <a href="http://www.gdcareers.com/gdchq_jobs/main.cfm?pg=search">Click Here</a></p><p>Enter Job ID # or Job Title and Search.</p>')
+# WEYERHAUSER=MySQLdb.escape_string('<p>For job details and to Apply: <a href="https://weyerhaeuser.taleo.net/careersection/10000/jobdetail.ftl">Click Here</a></p><p>Enter Job # or Job Title and Search.</p>')
+# INTEL=MySQLdb.escape_string('')
 
 def login(sheet_name) :
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')

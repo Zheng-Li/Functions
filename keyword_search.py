@@ -80,16 +80,20 @@ def keyword_search(site_page, keyword_dict) :
 	# Find site with WARNING_SIGN
 	for sign in WARNING_SIGN :
 		if re.search(sign, s) is not None :
-			return ['Warning: ' + sign]
+			return ['Job Not Found']
 
-
-	for ky in keyword_dict :
+	for ky in keyword_dict.keys() :
 		ky = ky.strip()
 		reg = '\\b' + ky + '\\b'
-		re.search(reg, s)  
-		if re.search(reg, s) is not None :
+		result = re.search(reg, s)  
+		if result is not None :
 			keyword_tag.append(ky)
-	return keyword_tag
+			keyword_tag += keyword_dict[ky]
+
+	tags = list(set(keyword_tag))
+	# tag_set = set(map(tuple,keyword_tag))  #need to convert the inner lists to tuples so they are hashable
+	# tags = map(list,tag_set) #Now convert tuples back into lists (maybe unnecessary?)
+	return tags
 
 def url_parse(rec, url_col) :
 	url = rec[url_col]
