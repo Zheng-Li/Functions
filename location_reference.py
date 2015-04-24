@@ -70,6 +70,7 @@ def get_abbrevation(full_name) :
 	for abbrevation, full in abbr.iteritems() :
 		if full_name == full :
 			return abbrevation
+	return full_name
 
 if __name__ == '__main__':
 	w = csv.writer(open('abbrevation.csv', 'w'))
