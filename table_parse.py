@@ -18,6 +18,12 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
+def login(spreadsheet) :
+	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	sh = gc.open(spreadsheet)
+	return sh
+
+# ----------- Regular site table parse -----------------
 def url_parse(url) :
 	try :
 		page = urllib2.urlopen(url, timeout = 10)
@@ -28,27 +34,21 @@ def url_parse(url) :
 		return page_data
 	except urllib2.URLError, e:
 		print 'Page error!'
+		return 
 	except socket.error, v:
 		print 'Socket error!'
+		return 
 	except (IOError, httplib.HTTPException):
 		print 'Unknown error!'
-
-def csv_output(data_list, csv_file) :
-	csv_writer = csv.writer(open(csv_file, 'ab'))
-	for row in data_list :
-		csv_writer.writerow(row)
+		return
 
 def table_parse(page) :
 	data = []
-
 	soup = BeautifulSoup(page)
 	table = soup.findChildren('table')[0]
-
 	heads = table.findChildren(['th'])
 	rows = table.findChildren(['tr'])
-
-	rows.pop(0) # Pop first row when it is the head
-
+	# rows.pop(0) # Pop first row when it is the head
 	for row in rows :
 		tmp = [] # organized data record
 		cells = row.findChildren('td')
@@ -71,15 +71,15 @@ def table_parse(page) :
 		data.append(tmp)
 	return data
 
+def csv_output(data_list, csv_file) :
+	csv_writer = csv.writer(open(csv_file, 'ab'))
+	for row in data_list :
+		csv_writer.writerow(row)
+
+# ------------- Taleo sheet update --------------
 def update_spreadsheet(data, sheet_name, loc) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-
-	# sh = gc.open('Zheng Brass Rings Jobs to upload March 2015')
-	# worksheet = sh.add_worksheet(title="bayer", rows="200", cols="20")
-	# worksheet = sh.worksheet('bayer')
-
-	sh = gc.open('Test')
-	worksheet = sh.worksheet(sheet_name)
+	sheet = login('Test')
+	worksheet = sheet.worksheet(sheet_name)
 
 	for x, row in enumerate(data) :
 		num = x + 2 + 25*(loc-1)
@@ -89,33 +89,32 @@ def update_spreadsheet(data, sheet_name, loc) :
 		worksheet.update_cells(cell_list)
 
 # ------------- Intel ----------------
-# def parse_javascript(url, page) :
-# 		browser = webdriver.Firefox()
-# 		browser.get(url)
+def intel_parse_javascript(url, page) :
+		browser = webdriver.Firefox()
+		browser.get(url)
 
-# 		for i in range(1, page) :
-# 			pager = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "jobPager")))
-# 			button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-# 			button.click()
+		for i in range(1, page) :
+			pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "jobPager")))
+			button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
+			button.click()
 
-# 		records = []
-# 		WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.ID, "searchresults")))
-# 		table = browser.find_elements_by_tag_name("table")[2].find_element_by_tag_name("tbody")
-# 		jobs = table.find_elements_by_tag_name("tr")
-# 		for j in jobs:
-# 			job_title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
-# 			job_url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
-# 			job_location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-# 			job_posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
-# 			record = [job_title, job_url] + intel_location(job_location) +  [job_posted]
-# 			records.append(record)
-# 			print record
+		records = []
+		WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "searchresults")))
+		table = browser.find_elements_by_tag_name("table")[2].find_element_by_tag_name("tbody")
+		jobs = table.find_elements_by_tag_name("tr")
+		for j in jobs:
+			job_title = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").text
+			job_url = j.find_elements_by_tag_name("td")[1].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("a").get_attribute("href")
+			job_location = j.find_elements_by_tag_name("td")[2].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+			job_posted = j.find_elements_by_tag_name("td")[3].find_element_by_tag_name("div").find_element_by_tag_name("div").find_element_by_tag_name("span").text
+			record = [job_title, job_url] + intel_location(job_location) +  [job_posted]
+			records.append(record)
+			print record
 
-# 		update_spreadsheet(records, 'Intel', page)
-# 		csv_output(records, 'Result/intel.csv')
-# 		browser.quit()
+		update_spreadsheet(records, 'Intel', page)
+		csv_output(records, 'Result/intel.csv')
+		browser.quit()
 
-# --------------- Intel -------------------
 def intel_location(location) :
 	if location == 'Multiple Locations' :
 		return ['','','']
@@ -138,7 +137,7 @@ def intel_location(location) :
 
 
 # ---------------- Fidelity ------------------
-def parse_javascript(url, page) :
+def fidelity_parse_javascript(url, page) :
 		browser = webdriver.Firefox()
 		browser.get(url)
 
@@ -148,7 +147,7 @@ def parse_javascript(url, page) :
 			button.click()
 
 		records = []
-		WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tr")))
+		WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.TAG_NAME, "tr")))
 		table = browser.find_element_by_id('jobs').find_element_by_tag_name("tbody")
 		jobs = table.find_elements_by_tag_name("tr")
 		for j in jobs:
@@ -164,7 +163,6 @@ def parse_javascript(url, page) :
 		csv_output(records, 'Result/fidelity.csv')
 		browser.quit()
 
-# --------------- Fidelity ---------------
 def fidelity_location(location) :
 	if location == 'Multiple Locations' :
 		return ['', '', '']
@@ -177,6 +175,7 @@ def fidelity_location(location) :
 		city = loc[2] if len(loc) > 2 else ''
 	return [country, state, city]
 
+# ----------- Taleo sites --------------
 def parse_job_detail(url) :
 	browser = webdriver.Firefox()
 	browser.get(url)
@@ -189,26 +188,31 @@ def parse_job_detail(url) :
 if __name__ == '__main__':
 	start_time = time.time()
 
+	# ----------- Regular Site ------------
 	# url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
 	# result = table_parse(page)
 
+	# ------------ Intel --------------
 	# url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
+	# page = url_parse(url)
+
+	# ------------ Fidelity ----------
 	# url = 'https://fidelity.taleo.net/careersection/10020/jobsearch.ftl'
 	# page = url_parse(url)
 
 	# ------------- Taleo Site Table parse ---------------
-	# parse_javascript(url, 10) # Certain page
-	# for i in range(9, 10) :
-	# 	parse_javascript(url, i)
+	# *_parse_javascript(url, 10)
+	# OR
+	# for i in range(0, 10) :
+	# 	*_parse_javascript(url, i)
 
 	# ------------- Taleo Job Details parse ---------------
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open('Test')
+	job_sh = login('Test')
 	sh = job_sh.worksheet('Fidelity')
 	raw_data = sh.get_all_values()
 	raw_data.pop(0)
 	for x, val in enumerate(raw_data) :
-	# for x in range(26, 85) :
+	# for x in range(20, 85) :
 		url = sh.acell('B'+str(x+2)).value
 		snippet = parse_job_detail(url)
 		print str(x) + '.......Done' 
