@@ -45,7 +45,7 @@ def check_job_valid(url, text) :
 	header = {'User-Agent': 'Mozilla/5.0'}
 	request = requests.get(url,headers=header)
 	status = request.status_code
-	if status != 200 and text = '':
+	if status != 200:
 		print status_code
 		return False
 
@@ -135,81 +135,93 @@ def taleo_sql_upload(spreadsheet_name, worksheet_name) :
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), \'{0[5]}\', org1.ID, loc1.ID, \'{0[7]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[4]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[2]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[6]}\';'''.format(row, worksheet_name)
 		f.write(job_sql + '\n')
 
+def location_parse(spreadsheet_name) :
+	result = get_locations(spreadsheet_name)
+	worksheet = spreadsheet_name.worksheet("Locations")
+	for x, item in enumerate(result) :
+		cell_list = worksheet.range('A'+str(x+1)+':F'+str(x+1))
+		for i, val in enumerate(item) :
+			cell_list[i].value = val
+		worksheet.update_cells(cell_list)
+
+def url_parse(spreadsheet_name) :
+	sh_list = spreadsheet_name.worksheets()
+	for sh in sh_list :
+		raw_data = sh.get_all_values()
+		raw_data.pop(0)
+		for x, val in enumerate(raw_data) :
+			title = sh.acell('B'+str(x+2)).value
+			url = sh.acell('C'+str(x+2)).value
+			status = url_check(url)
+			sh.update_acell('H'+str(x+2), status)
+			print 'No.' + str(x) + ', ' + title + '.......' + str(status) 
+
+def snippet_parse(spreadsheet_name, worksheet_name) :
+	tag = ''
+	attribute = ''
+	value = ''
+	sh = spreadsheet_name.worksheet(worksheet_name)
+	header = {'User-Agent': 'Mozilla/5.0'}
+	raw_data = sh.get_all_values()
+	raw_data.pop(0)
+	for x, val in enumerate(raw_data) :
+	# for x in range(26, 85) :
+		url = sh.acell('C'+str(x+2)).value
+		url_status = sh.acell('H'+str(x+2)).value
+		if url_status == '200' :
+			request = urllib2.Request(url, headers=header)
+			soup = BeautifulSoup(urllib2.urlopen(request).read())
+			snippet = soup.find(tag, {attrbute : value})
+			if snippet is not None :
+				for tag in snippet.find_all('a'):
+				    tag.replaceWith('')
+				for tag in snippet.find_all('script'):
+				    tag.replaceWith('')
+				print str(x) + '.......Done' 
+				sh.update_acell('I'+str(x+2), snippet)
+
+
+def tag_parse(spreadsheet_name) :
+	sh_list = spreadsheet_name.worksheets()
+	keyword_dict = get_keyword_dict()
+	# for x in range(0,1) :
+			# sh = job_sh.worksheet('GE Captial')
+	for sh in sh_list :
+		raw_data = sh.get_all_values()
+		raw_data.pop(0)
+		for x, val in enumerate(raw_data) :
+			url = sh.acell('C'+str(x+2)).value
+			snippet = sh.acell('I'+str(x+2)).value
+			if snippet == '' or not check_job_valid(url, snippet) :
+				tags = ['Job Not Found'] 
+			else :
+				tags = keyword_search(snippet, keyword_dict)
+			sh.update_acell('J'+str(x+2), ','.join(tags))
+			print 'No.' + str(x) + ', ' + url + '.......Done' 
+
+def sql_parse(spreadsheet_name, worksheet_name, taleo) :
+	if taleo :
+		taleo_sql_upload(spreadsheet_name, worksheet_name)
+	else :
+		normal_sql_upload(spreadsheet_name, worksheet_name)
+
+
 if __name__ == '__main__':
 	start_time = time.time()
 
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
 	job_sh = gc.open('Copy of Project 9a')
 
-	# -------------- Location update ------------------
-	# result = get_locations(job_sh)
-	# worksheet = job_sh.worksheet("Locations")
-	# for x, item in enumerate(result) :
-	# 	cell_list = worksheet.range('A'+str(x+1)+':F'+str(x+1))
-	# 	for i, val in enumerate(item) :
-	# 		cell_list[i].value = val
-	# 	worksheet.update_cells(cell_list)
-
-
-	# ------------- Url update ----------------
-	# sh_list = job_sh.worksheets()
-	# for sh in sh_list :
-	# 	raw_data = sh.get_all_values()
-	# 	raw_data.pop(0)
-	# 	for x, val in enumerate(raw_data) :
-	# 		title = sh.acell('B'+str(x+2)).value
-	# 		url = sh.acell('C'+str(x+2)).value
-	# 		status = url_check(url)
-	# 		sh.update_acell('H'+str(x+2), status)
-	# 		print 'No.' + str(x) + ', ' + title + '.......' + str(status) 
-
-
-	# -------------- Snippet update -----------------
-	# sheet_name = ''
-	# tag = ''
-	# attribute = ''
-	# value = ''
-	# sh = job_sh.worksheet(sheet_name)
-	# header = {'User-Agent': 'Mozilla/5.0'}
-	# raw_data = sh.get_all_values()
-	# raw_data.pop(0)
-	# for x, val in enumerate(raw_data) :
-	# # for x in range(26, 85) :
-	# 	url = sh.acell('C'+str(x+2)).value
-	# 	url_status = sh.acell('H'+str(x+2)).value
-	# 	if url_status == '200' :
-	# 		request = urllib2.Request(url, headers=header)
-	# 		soup = BeautifulSoup(urllib2.urlopen(request).read())
-	# 		snippet = soup.find(tag, {attrbute : value})
-	# 		if snippet is not None :
-	# 			for tag in snippet.find_all('a'):
-	# 			    tag.replaceWith('')
-	# 			for tag in snippet.find_all('script'):
-	# 			    tag.replaceWith('')
-	# 			print str(x) + '.......Done' 
-	# 			sh.update_acell('I'+str(x+2), snippet)
-
-
-	# -------------- Tag update ---------------
-	# sh_list = job_sh.worksheets()
-	# keyword_dict = get_keyword_dict()
-	# for sh in sh_list :
-	# # for x in range(0,1) :
-	# 	# sh = job_sh.worksheet('GE Captial')
-	# 	raw_data = sh.get_all_values()
-	# 	raw_data.pop(0)
-	# 	for x, val in enumerate(raw_data) :
-	# 		url = sh.acell('C'+str(x+2)).value
-	# 		snippet = sh.acell('I'+str(x+2)).value
-	# 		if snippet == '' or not check_job_valid(url, snippet) :
-	# 			tags = ['Job Not Found'] 
-	# 		else :
-	# 			tags = keyword_search(snippet, keyword_dict)
-	# 		sh.update_acell('J'+str(x+2), ','.join(tags))
-	# 		print 'No.' + str(x) + ', ' + url + '.......Done' 
-
-	# --------------- SQL update -------------------
-	# normal_sql_upload('Copy of Project 9a', '')
-	# taleo_sql_upload('Test', 'Intel')
+	# -------------- Step 1: Location parse ------------------
+	location_parse(job_sh)
+	# -------------- Step 2: Url parse ----------------
+	url_parse(job_sh)
+	# -------------- Step 3: Snippet parse -----------------
+	snippet_parse(job_sh, '') # Pass worksheet name
+	# -------------- Step 4: Tag parse ---------------
+	tag_parse(job_sh)
+	# -------------- Step 5: SQL parse -------------------
+	sql_parse(job_sh, '', True)
+	sql_parse(job_sh, '', False)
 
 	print("--- %s seconds ---" % (time.time() - start_time))

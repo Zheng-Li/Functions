@@ -5,22 +5,11 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-def update_spreadsheet() :
+def update_spreadsheet(sheet_name, location_list) :
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open('Zheng Brass Rings Jobs to upload March 2015')
-
+	sh = gc.open(sheet_name)
 	# worksheet = sh.add_worksheet(title="Location", rows="200", cols="10")
-	worksheet = sh.worksheet('Location')
-
-	f = open('Result/location.sql', 'rb')
-	data = list(f)
-	records = []
-	for line in data :
-		r = re.compile('VALUES (.*?) ON')
-		tmp = r.search(line).group(1) 
-		loc = tmp.strip('(|)').replace('\'', '').split(', ')
-		if loc not in records :
-			records.append(loc)
+	worksheet = sh.worksheet('Locations')
 
 	# Header
 	cell_list = worksheet.range('A1:F1')
@@ -30,25 +19,24 @@ def update_spreadsheet() :
 	worksheet.update_cells(cell_list)
 
 	# Data
-	for x, rec in enumerate(records) :
+	for x, rec in enumerate(location_list) :
 		num = x+2
 		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
 		for i, val in enumerate(rec) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
 
-def upload_location() :
+def upload_location(sheet_name) :
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open('Zheng Brass Rings Jobs to upload March 2015')
+	sh = gc.open(sheet_name)
+	worksheet = sh.worksheet('Locations')
 
-	# worksheet = sh.add_worksheet(title="Location", rows="200", cols="10")
-	worksheet = sh.worksheet('Location')
-
+	# <City, State, Abbreviation, Country, Latitude, Longitude>
 	data_list = worksheet.get_all_values()
-	data_list.pop(0)
+	data_list.pop(0) # Remove header row
 
 	for data in data_list :
-		f = open('Result/location.sql', 'a')
+		f = open('Result/locations.sql', 'a')
 		data[0] = MySQLdb.escape_string(data[0].strip())
 		data[1] = MySQLdb.escape_string(data[1].strip())
 		data[2] = MySQLdb.escape_string(data[2].strip())
@@ -57,8 +45,7 @@ def upload_location() :
 		f.write(sql + '\n')
 
 if __name__ == '__main__':
-	# update_spreadsheet()
-	upload_location()
+	upload_location('Test')
 
 
 
