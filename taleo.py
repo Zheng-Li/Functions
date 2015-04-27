@@ -5,7 +5,7 @@ import time
 import urllib2
 import re
 import MySQLdb
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from geolocation import send_request_by_location
 from sql_upload import upload_location
 from keyword_search import keyword_search
@@ -22,7 +22,9 @@ def url_check(url) :
 
 def get_locations(sh) :
 	locations = []
-	for i in range(0, 16) :
+	start_sheet = 0 
+	end_sheet = 6
+	for i in range(start_sheet, end_sheet) :
 		sheet = sh.get_worksheet(i)
 		raw_data = sheet.get_all_values()
 		raw_data.pop(0)
@@ -39,14 +41,16 @@ def get_locations(sh) :
 	return result
 
 def check_job_valid(url, text) :
-	# -------- Check by URL ------------
-	# header = {'User-Agent': 'Mozilla/5.0'}
-	# request = urllib2.Request(url,headers=header)
-	# page = urllib2.urlopen(request).read()
+	# -------- Check URL ------------
+	header = {'User-Agent': 'Mozilla/5.0'}
+	request = requests.get(url,headers=header)
+	status = request.status_code
+	if status != 200 and text = '':
+		print status_code
+		return False
 
-	# ----------- Check by Text ---------------
+	# ----------- Check Text ---------------
 	page = text 
-
 	re_cdata=re.compile('//<!\[CDATA\[[^>]*//\]\]>',re.I)
 	re_script=re.compile('<\s*script[^>]*>[^<]*<\s*/\s*script\s*>',re.I | re.M)
 	re_style=re.compile('<\s*style[^>]*>[^<]*<\s*/\s*style\s*>',re.I)
@@ -83,44 +87,59 @@ def get_keyword_dict() :
 		values = filter(None, row)
 		keywords_dict[key] = [x.lower() for x in values]
 
-	# for x in range(1, 235) :
-	# 	row = worksheet.row_values(x)
-	# 	key = row.pop(0)
-	# 	values = filter(None, row)
-
 	return  keywords_dict
 
-def sql_upload(sheet_name) :
+def normal_sql_upload(spreadsheet_name, worksheet_name) :
+	f = open('Result/'+ worksheet_name + '.sql', 'a')
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open(sheet_name)
+	job_sh = gc.open(spreadsheet_name)
 
-	for x in range(0, 16) :
-		sheet = job_sh.get_worksheet(x)
-		data = sheet.get_all_values()
-		data.pop(0)
-		for row in data :
-			row[0] = MySQLdb.escape_string(row[0].strip())
-			row[1] = MySQLdb.escape_string(row[1].strip())
-			row[2] = MySQLdb.escape_string(row[2].strip())
-			row[3] = MySQLdb.escape_string(row[3].strip())
-			row[4] = MySQLdb.escape_string(row[4].strip())
-			row[5] = MySQLdb.escape_string(row[5].strip())
-			row[6] = MySQLdb.escape_string(row[6].strip())
-			row[7] = MySQLdb.escape_string(row[7].strip())
-			row[8] = MySQLdb.escape_string(row[8].strip())
-			row[9] = MySQLdb.escape_string(row[9].strip())
-			if row[9] == 'Job Not Found' :
-				continue
-			# job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' AND NOT EXISTS (SELECT 1 FROM zd_new_job as job WHERE Title = \'{0[1]}\' AND job.Org_id = org1.ID AND job.Loc_id = loc1.ID AND job.Url = \'{0[2]}\');'''.format(row)
-			job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
-			print job_sql
+	worksheet = job_sh.worksheet(worksheet_name)
+	data = worksheet.get_all_values()
+	data.pop(0)
+	for row in data :
+		row[0] = MySQLdb.escape_string(row[0].strip())
+		row[1] = MySQLdb.escape_string(row[1].strip())
+		row[2] = MySQLdb.escape_string(row[2].strip())
+		row[3] = MySQLdb.escape_string(row[3].strip())
+		row[4] = MySQLdb.escape_string(row[4].strip())
+		row[5] = MySQLdb.escape_string(row[5].strip())
+		row[6] = MySQLdb.escape_string(row[6].strip())
+		row[7] = MySQLdb.escape_string(row[7].strip())
+		row[8] = MySQLdb.escape_string(row[7].strip())
+		row[9] = MySQLdb.escape_string(row[7].strip())
+		if row[9] == 'Job Not Found' :
+			continue
+		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
+		f.write(job_sql + '\n')
+
+def taleo_sql_upload(spreadsheet_name, worksheet_name) :
+	f = open('Result/'+ worksheet_name + '.sql', 'a')
+	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	job_sh = gc.open(spreadsheet_name)
+
+	worksheet = job_sh.worksheet(worksheet_name)
+	data = worksheet.get_all_values()
+	data.pop(0)
+	for row in data :
+		row[0] = MySQLdb.escape_string(row[0].strip())
+		row[1] = MySQLdb.escape_string(row[1].strip())
+		row[2] = MySQLdb.escape_string(row[2].strip())
+		row[3] = MySQLdb.escape_string(row[3].strip())
+		row[4] = MySQLdb.escape_string(row[4].strip())
+		row[5] = MySQLdb.escape_string(row[5].strip())
+		row[6] = MySQLdb.escape_string(row[6].strip())
+		row[7] = MySQLdb.escape_string(row[7].strip())
+		if row[7] == 'Job Not Found' :
+			continue
+		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), \'{0[5]}\', org1.ID, loc1.ID, \'{0[7]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[4]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[2]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[6]}\';'''.format(row, worksheet_name)
+		f.write(job_sql + '\n')
 
 if __name__ == '__main__':
 	start_time = time.time()
 
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open('Project 8 Copy')
-
+	job_sh = gc.open('Copy of Project 9a')
 
 	# -------------- Location update ------------------
 	# result = get_locations(job_sh)
@@ -132,8 +151,25 @@ if __name__ == '__main__':
 	# 	worksheet.update_cells(cell_list)
 
 
+	# ------------- Url update ----------------
+	# sh_list = job_sh.worksheets()
+	# for sh in sh_list :
+	# 	raw_data = sh.get_all_values()
+	# 	raw_data.pop(0)
+	# 	for x, val in enumerate(raw_data) :
+	# 		title = sh.acell('B'+str(x+2)).value
+	# 		url = sh.acell('C'+str(x+2)).value
+	# 		status = url_check(url)
+	# 		sh.update_acell('H'+str(x+2), status)
+	# 		print 'No.' + str(x) + ', ' + title + '.......' + str(status) 
+
+
 	# -------------- Snippet update -----------------
-	# sh = job_sh.worksheet('CGI')
+	# sheet_name = ''
+	# tag = ''
+	# attribute = ''
+	# value = ''
+	# sh = job_sh.worksheet(sheet_name)
 	# header = {'User-Agent': 'Mozilla/5.0'}
 	# raw_data = sh.get_all_values()
 	# raw_data.pop(0)
@@ -144,7 +180,7 @@ if __name__ == '__main__':
 	# 	if url_status == '200' :
 	# 		request = urllib2.Request(url, headers=header)
 	# 		soup = BeautifulSoup(urllib2.urlopen(request).read())
-	# 		snippet = soup.find('span', {'class' : 'ProfileInputLabel'})
+	# 		snippet = soup.find(tag, {attrbute : value})
 	# 		if snippet is not None :
 	# 			for tag in snippet.find_all('a'):
 	# 			    tag.replaceWith('')
@@ -154,24 +190,12 @@ if __name__ == '__main__':
 	# 			sh.update_acell('I'+str(x+2), snippet)
 
 
-	# ------------- Url update ----------------
-	# sh_list = job_sh.worksheets()
-	# for sh in sh_list :
-	# 	raw_data = sh.get_all_values()
-	# 	raw_data.pop(0)
-	# 	for x, val in enumerate(raw_data) :
-	# 		url = sh.acell('C'+str(x+2)).value
-	# 		status = url_check(url)
-	# 		sh.update_acell('H'+str(x+2), status)
-	# 		print 'No.' + str(x) + ', ' + title + '.......Done' 
-
-
 	# -------------- Tag update ---------------
 	# sh_list = job_sh.worksheets()
 	# keyword_dict = get_keyword_dict()
-	# for x in range(0,1) :
-	# 	sh = job_sh.worksheet('CGI')
-	# # for sh in sh_list :
+	# for sh in sh_list :
+	# # for x in range(0,1) :
+	# 	# sh = job_sh.worksheet('GE Captial')
 	# 	raw_data = sh.get_all_values()
 	# 	raw_data.pop(0)
 	# 	for x, val in enumerate(raw_data) :
@@ -185,6 +209,7 @@ if __name__ == '__main__':
 	# 		print 'No.' + str(x) + ', ' + url + '.......Done' 
 
 	# --------------- SQL update -------------------
-	sql_upload('Project 8 Copy')
+	# normal_sql_upload('Copy of Project 9a', '')
+	# taleo_sql_upload('Test', 'Intel')
 
 	print("--- %s seconds ---" % (time.time() - start_time))

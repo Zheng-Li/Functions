@@ -115,6 +115,7 @@ def update_spreadsheet(data, sheet_name, loc) :
 # 		csv_output(records, 'Result/intel.csv')
 # 		browser.quit()
 
+# --------------- Intel -------------------
 def intel_location(location) :
 	if location == 'Multiple Locations' :
 		return ['','','']
@@ -163,7 +164,7 @@ def parse_javascript(url, page) :
 		csv_output(records, 'Result/fidelity.csv')
 		browser.quit()
 
-
+# --------------- Fidelity ---------------
 def fidelity_location(location) :
 	if location == 'Multiple Locations' :
 		return ['', '', '']
@@ -176,6 +177,14 @@ def fidelity_location(location) :
 		city = loc[2] if len(loc) > 2 else ''
 	return [country, state, city]
 
+def parse_job_detail(url) :
+	browser = webdriver.Firefox()
+	browser.get(url)
+
+	job_data = browser.find_element_by_class_name('editablesection').get_attribute('innerHTML')
+
+	browser.quit()
+	return job_data 
 
 if __name__ == '__main__':
 	start_time = time.time()
@@ -184,13 +193,26 @@ if __name__ == '__main__':
 	# result = table_parse(page)
 
 	# url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
-	url = 'https://fidelity.taleo.net/careersection/10020/jobsearch.ftl'
-	page = url_parse(url)
+	# url = 'https://fidelity.taleo.net/careersection/10020/jobsearch.ftl'
+	# page = url_parse(url)
 
 	# ------------- Taleo Site Table parse ---------------
 	# parse_javascript(url, 10) # Certain page
 	# for i in range(9, 10) :
 	# 	parse_javascript(url, i)
+
+	# ------------- Taleo Job Details parse ---------------
+	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	job_sh = gc.open('Test')
+	sh = job_sh.worksheet('Fidelity')
+	raw_data = sh.get_all_values()
+	raw_data.pop(0)
+	for x, val in enumerate(raw_data) :
+	# for x in range(26, 85) :
+		url = sh.acell('B'+str(x+2)).value
+		snippet = parse_job_detail(url)
+		print str(x) + '.......Done' 
+		sh.update_acell('G'+str(x+2), snippet)
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	
