@@ -217,7 +217,7 @@ if __name__ == '__main__':
 	# -------------- Step 2: Url parse ----------------
 	url_parse(job_sh)
 	# -------------- Step 3: Snippet parse -----------------
-	snippet_parse(job_sh, '') # Pass worksheet name
+	snippet_parse(job_sh, '') # Pass worksheet Name
 	# -------------- Step 4: Tag parse ---------------
 	tag_parse(job_sh)
 	# -------------- Step 5: SQL parse -------------------

@@ -9,10 +9,12 @@ import csv
 import time
 from location_reference import get_abbrevation
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from time import sleep
 import sys
 reload(sys)
@@ -180,10 +182,19 @@ def parse_job_detail(url) :
 	browser = webdriver.Firefox()
 	browser.get(url)
 
-	job_data = browser.find_element_by_class_name('editablesection').get_attribute('innerHTML')
-
-	browser.quit()
-	return job_data 
+	try :
+		job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "editablesection")))
+		job_data = job_data.get_attribute('innerHTML')
+		soup = BeautifulSoup(job_data)
+		trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
+		result = ''.join(str(tag) for tag in trimed_data)
+		# print result
+		browser.quit()
+		return result
+	except StaleElementReferenceException:
+		browser.quit()
+	except TimeoutException:
+		browser.quit()
 
 if __name__ == '__main__':
 	start_time = time.time()
@@ -212,11 +223,12 @@ if __name__ == '__main__':
 	raw_data = sh.get_all_values()
 	raw_data.pop(0)
 	for x, val in enumerate(raw_data) :
-	# for x in range(20, 85) :
+	# for x in range(0, 1) :
 		url = sh.acell('B'+str(x+2)).value
 		snippet = parse_job_detail(url)
 		print str(x) + '.......Done' 
-		sh.update_acell('G'+str(x+2), snippet)
+		if snippet is not None :
+			sh.update_acell('G'+str(x+2), snippet)
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	
