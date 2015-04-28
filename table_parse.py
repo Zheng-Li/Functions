@@ -177,11 +177,10 @@ def fidelity_location(location) :
 		city = loc[2] if len(loc) > 2 else ''
 	return [country, state, city]
 
-# ----------- Taleo sites --------------
-def parse_job_detail(url) :
-	browser = webdriver.Firefox()
-	browser.get(url)
+# ----------- Taleo detail page --------------
+def parse_job_detail(browser, url) :
 
+	browser.get(url)
 	try :
 		job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "editablesection")))
 		job_data = job_data.get_attribute('innerHTML')
@@ -189,12 +188,14 @@ def parse_job_detail(url) :
 		trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
 		result = ''.join(str(tag) for tag in trimed_data)
 		# print result
-		browser.quit()
 		return result
 	except StaleElementReferenceException:
-		browser.quit()
+		return
 	except TimeoutException:
-		browser.quit()
+		return
+
+def sql_output(worksheet) :
+	print ' '
 
 if __name__ == '__main__':
 	start_time = time.time()
@@ -219,16 +220,26 @@ if __name__ == '__main__':
 
 	# ------------- Taleo Job Details parse ---------------
 	job_sh = login('Test')
-	sh = job_sh.worksheet('Fidelity')
+	sh = job_sh.worksheet('Intel')
 	raw_data = sh.get_all_values()
 	raw_data.pop(0)
+
+	browser = webdriver.Firefox()
+
 	for x, val in enumerate(raw_data) :
-	# for x in range(0, 1) :
-		url = sh.acell('B'+str(x+2)).value
-		snippet = parse_job_detail(url)
-		print str(x) + '.......Done' 
-		if snippet is not None :
-			sh.update_acell('G'+str(x+2), snippet)
+		url = val[1]
+		if val[6] == '' :
+			snippet = parse_job_detail(browser, url)
+			if snippet is not None :
+				sh.update_acell('G'+str(x+2), snippet)
+				print 'Line No.' + str(x+2) + '.......' + url
+			else :
+				print 'Line No.' + str(x+2) + '.......Job not found'
+
+	browser.quit() 
+
+
+
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	

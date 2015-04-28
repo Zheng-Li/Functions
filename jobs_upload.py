@@ -184,20 +184,34 @@ def snippet_parse(spreadsheet_name, worksheet_name) :
 def tag_parse(spreadsheet_name) :
 	sh_list = spreadsheet_name.worksheets()
 	keyword_dict = get_keyword_dict()
-	# for x in range(0,1) :
-			# sh = job_sh.worksheet('GE Captial')
-	for sh in sh_list :
+	for x in range(0,1) :
+		sh = job_sh.worksheet('Fidelity')
+	# for sh in sh_list :
 		raw_data = sh.get_all_values()
 		raw_data.pop(0)
 		for x, val in enumerate(raw_data) :
-			url = sh.acell('C'+str(x+2)).value
-			snippet = sh.acell('I'+str(x+2)).value
-			if snippet == '' or not check_job_valid(url, snippet) :
-				tags = ['Job Not Found'] 
+			# url = val[2]
+			# snippet = val[8]
+			# if snippet == '' or not check_job_valid(url, snippet) :
+			# 	tags = ['Job Not Found'] 
+			# else :
+			# 	tags = keyword_search(snippet, keyword_dict)
+			# sh.update_acell('J'+str(x+2), ','.join(tags))
+			# print 'No.' + str(x) + ', ' + url + '.......Done' 
+
+			snippet = val[6]
+			tags = val[7]
+			# if snippet == '' :
+			# 	tags = ['Job Not Found']
+			# else :
+			# 	tags = keyword_search(snippet, keyword_dict)
+			if tags != '' :
+				continue
 			else :
 				tags = keyword_search(snippet, keyword_dict)
-			sh.update_acell('J'+str(x+2), ','.join(tags))
-			print 'No.' + str(x) + ', ' + url + '.......Done' 
+				sh.update_acell('H'+str(x+2), ','.join(tags))
+				print 'No.' + str(x+2) + ' Line: ' + ','.join(tags)
+
 
 def sql_parse(spreadsheet_name, worksheet_name, taleo) :
 	if taleo :
@@ -210,18 +224,22 @@ if __name__ == '__main__':
 	start_time = time.time()
 
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open('Copy of Project 9a')
+	job_sh = gc.open('Test')
 
 	# -------------- Step 1: Location parse ------------------
-	location_parse(job_sh)
+	# location_parse(job_sh)
+
 	# -------------- Step 2: Url parse ----------------
-	url_parse(job_sh)
+	# url_parse(job_sh)
+
 	# -------------- Step 3: Snippet parse -----------------
-	snippet_parse(job_sh, '') # Pass worksheet Name
+	# snippet_parse(job_sh, '') # Pass worksheet Name
+
 	# -------------- Step 4: Tag parse ---------------
-	tag_parse(job_sh)
+	# tag_parse(job_sh)
+
 	# -------------- Step 5: SQL parse -------------------
-	sql_parse(job_sh, '', True)
-	sql_parse(job_sh, '', False)
+	# sql_parse('Test', 'Fidelity', True)
+	# sql_parse(job_sh, '', False)
 
 	print("--- %s seconds ---" % (time.time() - start_time))

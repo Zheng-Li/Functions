@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import httplib
 import urllib2
@@ -68,12 +69,14 @@ def keyword_search(site_page, keyword_dict) :
 	re_br=re.compile('<br\s*?/?>')
 	re_h=re.compile('</?\w+[^>]*>')
 	re_comment=re.compile('<!--[^>]*-->')
+	re_special=re.compile('[\xc2]', re.I) # Special character '\xc2'
 	s=re_cdata.sub('',site_page)
 	s=re_script.sub('',s)
 	s=re_style.sub('',s)
 	s=re_br.sub('\n',s)
 	s=re_h.sub('',s)
 	s=re_comment.sub('',s)
+	s=re_special.sub(' ',s)
 	s=s.lower()
 	# print s
 
@@ -153,18 +156,37 @@ def url_parse(rec, url_col) :
 		# print 'Special cite'
 		return
 
+def get_keyword_dict() :
+	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	key_sh = gc.open('Test Project')
+	worksheet = key_sh.worksheet('Keywords Python Parsing Job Tags April22')
+
+	keywords_dict = {}
+
+	raw = worksheet.get_all_values()
+	for row in raw :
+		key = row.pop(0).lower()
+		values = filter(None, row)
+		keywords_dict[key] = [x.lower() for x in values]
+
+	return  keywords_dict
+
 if __name__ == '__main__':
 	start_time = time.time()
-	keywords = []
+	keywords = get_keyword_dict()
 	records = []
 	location = []
 
+	text = ''''''
+	print keyword_search(text, keywords)
+
+
 	# ------------------ Normal sheet input --------------------------
-	sheets = login('Template Standard for New Jobs Upload March 2015')
-	records = sheet_input(sheets, 'Sheet1')
-	records += sheet_input(sheets, 'Sheet2')
-	records += sheet_input(sheets, 'Sheet3')
-	print 'Download....Done'
+	# sheets = login('Template Standard for New Jobs Upload March 2015')
+	# records = sheet_input(sheets, 'Sheet1')
+	# records += sheet_input(sheets, 'Sheet2')
+	# records += sheet_input(sheets, 'Sheet3')
+	# print 'Download....Done'
 
 	# --------------------- Normal location input -----------------------
 	# for rec in records :
@@ -177,15 +199,15 @@ if __name__ == '__main__':
 	# 	upload_location(result)
 	# 	# print result
 
-
-	raw_key = csv_input('keywords.csv')
-	for key in raw_key :
-		keywords.append(key[0].lower())
-	print 'Keys....Done'
-	for count, rec in enumerate(records) :
-		r = url_parse(rec, 2)		
-		if r is not None:
-			print str(count) + '---' + r[1] + '...Done'
+	# ----------- NOT IN USE -------------
+	# raw_key = csv_input('keywords.csv')
+	# for key in raw_key :
+	# 	keywords.append(key[0].lower())
+	# print 'Keys....Done'
+	# for count, rec in enumerate(records) :
+	# 	r = url_parse(rec, 2)		
+	# 	if r is not None:
+	# 		print str(count) + '---' + r[1] + '...Done'
 
 	# Test url input
 	# urls.append('')
