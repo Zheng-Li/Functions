@@ -5,8 +5,8 @@ import socket
 import httplib
 import json
 import gspread
-# from bs4 import BeautifulSoup
 from time import sleep
+# from bs4 import Beautifulsoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -95,6 +95,8 @@ if __name__ == '__main__':
 		results += parse_job_data(browser, p)
 
 	browser.get('http://www.amazon.jobs/results?searchStrings[]=MBA')
+	results += parse_job_data(browser, 1)
+	browser.get('http://www.amazon.jobs/results?searchStrings[]=leadership')
 	results += parse_job_data(browser, 1)
 
 	result_set = set(map(tuple,results))  #need to convert the inner lists to tuples so they are hashable
