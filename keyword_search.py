@@ -7,7 +7,7 @@ import csv
 import socket
 import random
 import gspread
-from geolocation import send_request_by_location
+from Geolocation.geolocation import send_request_by_location
 from sql_upload import upload_location
 from sql_upload import upload_job
 from sql_upload import update_job

@@ -20,16 +20,18 @@ def url_check(url) :
 	except requests.ConnectionError:
 	    return "Unknown Error"
 
-def get_locations(sh) :
+def get_locations(sh, worksheet) :
 	locations = []
-	start_sheet = 0 
-	end_sheet = 6
-	for i in range(start_sheet, end_sheet) :
-		sheet = sh.get_worksheet(i)
+	# start_sheet = 0 
+	# end_sheet = 6
+	# for i in range(start_sheet, end_sheet) :
+		# sheet = sh.get_worksheet(i)
+	sheet = sh.worksheet(worksheet)
+	for i in range(0, 1) :	
 		raw_data = sheet.get_all_values()
 		raw_data.pop(0)
 		for item in raw_data :
-			loc = [item[3].strip(), item[4].strip(), item[5].strip()]
+			loc = [item[2].strip(), item[3].strip(), item[4].strip()]
 			if loc not in locations :
 				locations.append(loc)
 
@@ -114,7 +116,8 @@ def normal_sql_upload(spreadsheet_name, worksheet_name) :
 		f.write(job_sql + '\n')
 
 def taleo_sql_upload(spreadsheet_name, worksheet_name) :
-	f = open('Result/'+ worksheet_name + '.sql', 'a')
+	company = 'Intel Corporation' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	f = open('Result/'+ company + '.sql', 'a')
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
 	job_sh = gc.open(spreadsheet_name)
 
@@ -132,8 +135,9 @@ def taleo_sql_upload(spreadsheet_name, worksheet_name) :
 		row[7] = MySQLdb.escape_string(row[7].strip())
 		if row[7] == 'Job Not Found' :
 			continue
-		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), \'{0[5]}\', org1.ID, loc1.ID, \'{0[7]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[4]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[2]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[6]}\';'''.format(row, worksheet_name)
+		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), org1.ID, loc1.ID, \'{0[7]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[6]}\', tags = \'{0[7]}\';'''.format(row, company)
 		f.write(job_sql + '\n')
+	f.close()
 
 def location_parse(spreadsheet_name) :
 	result = get_locations(spreadsheet_name)
@@ -181,11 +185,11 @@ def snippet_parse(spreadsheet_name, worksheet_name) :
 				sh.update_acell('I'+str(x+2), snippet)
 
 
-def tag_parse(spreadsheet_name) :
+def tag_parse(spreadsheet_name, worksheet_name) :
 	sh_list = spreadsheet_name.worksheets()
 	keyword_dict = get_keyword_dict()
 	for x in range(0,1) :
-		sh = job_sh.worksheet('Fidelity')
+		sh = job_sh.worksheet(worksheet_name)
 	# for sh in sh_list :
 		raw_data = sh.get_all_values()
 		raw_data.pop(0)
@@ -200,17 +204,21 @@ def tag_parse(spreadsheet_name) :
 			# print 'No.' + str(x) + ', ' + url + '.......Done' 
 
 			snippet = val[6]
-			tags = val[7]
-			# if snippet == '' :
-			# 	tags = ['Job Not Found']
-			# else :
-			# 	tags = keyword_search(snippet, keyword_dict)
-			if tags != '' :
-				continue
+			# tags = val[7]
+			if snippet == '' :
+				tags = ['Job Not Found']
 			else :
 				tags = keyword_search(snippet, keyword_dict)
-				sh.update_acell('H'+str(x+2), ','.join(tags))
-				print 'No.' + str(x+2) + ' Line: ' + ','.join(tags)
+			sh.update_acell('H'+str(x+2), ','.join(tags))
+			print 'No.' + str(x+2) + ' Line: ' + '........Done'
+
+			# Double check tag parsing 
+			# if tags != '' :
+			# 	continue
+			# else :
+			# 	tags = keyword_search(snippet, keyword_dict)
+			# 	print 'No.' + str(x+2) + ' Line: ' + ','.join(tags)
+			
 
 
 def sql_parse(spreadsheet_name, worksheet_name, taleo) :
@@ -228,6 +236,7 @@ if __name__ == '__main__':
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
+	# get_locations(job_sh, 'Intel_Intern')
 
 	# -------------- Step 2: Url parse ----------------
 	# url_parse(job_sh)
@@ -236,10 +245,10 @@ if __name__ == '__main__':
 	# snippet_parse(job_sh, '') # Pass worksheet Name
 
 	# -------------- Step 4: Tag parse ---------------
-	# tag_parse(job_sh)
+	# tag_parse(job_sh, 'Intel_Intern')
 
 	# -------------- Step 5: SQL parse -------------------
-	# sql_parse('Test', 'Fidelity', True)
+	# sql_parse('Test', 'Intel_Intern', True)
 	# sql_parse(job_sh, '', False)
 
 	print("--- %s seconds ---" % (time.time() - start_time))

@@ -1,54 +1,70 @@
 import MySQLdb
 import csv
 
-def upload_location(data) :
-	# data is <City, State,  Abbreviation, Country, Latitude, Longitude>
-	f = open('Result/location.sql', 'a')
-	data[0] = MySQLdb.escape_string(data[0].strip())
-	data[1] = MySQLdb.escape_string(data[1].strip())
-	data[2] = MySQLdb.escape_string(data[2].strip())
-	data[3] = MySQLdb.escape_string(data[3].strip())
-	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(data, float(data[4]), float(data[5]))
+# -------------- Prepare data from script (Space and Quotation) --------------
+def prepare_data(raw_data) :
+	data = []
+	for d in raw_data :
+		data.append(MySQLdb.escape_string(d.strip()))
+	return data
+
+# ------------ Location Data (City, State, Abbreviation, Country, Latitude, Longitude) ---------------
+def upload_location(raw_data) :
+	f = open('Result/upload_location.sql', 'a')
+	location = prepare_data(raw_data)
+	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) 
+			 VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) 
+			 ON DUPLICATE KEY 
+			 UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);
+			 '''.format(location, float(location[4]), float(location[5]))
 	f.write(sql + '\n')
-	print data
+	# print sql
 
-def upload_job(data) :
-	# data is <Organization name, Title, Url, City, Abbreviation, Country, Expired_on, tags>
-	f = open('Result/jobs.sql', 'a')
-	data[0] = MySQLdb.escape_string(data[0].strip())
-	data[1] = MySQLdb.escape_string(data[1].strip())
-	data[2] = MySQLdb.escape_string(data[2].strip())
-	data[3] = MySQLdb.escape_string(data[3].strip())
-	data[4] = MySQLdb.escape_string(data[4].strip())
-	data[5] = MySQLdb.escape_string(data[5].strip())
-	data[6] = MySQLdb.escape_string(data[6].strip())
-	data[7] = MySQLdb.escape_string(data[7].strip())
-	job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[7]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' AND NOT EXISTS (SELECT 1 FROM zd_new_job as job WHERE Title = \'{0[1]}\' AND job.Org_id = org1.ID AND job.Loc_id = loc1.ID AND job.Url = \'{0[2]}\');'''.format(data)
-	f.write(job_sql + '\n')
+# ----------- Job Data(Title, Url, City, Abbreviation, Country, Created_on, Expired_on, Snippet, tags) ----------
+def upload_job(company, raw_data) :
+	f = open('Result/upload_jobs.sql', 'a')
+	job = prepare_data(raw_data)
+	if job[5] == '' :  # Default created time is current date
+		job[5] = 'CURDATE()'
+	if job[6] == '' :
+		job[6] = '0000-00-00' # Default expire time is empty
+	sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, Snippet, tags) 
+			 SELECT \'{0[0]}\', \'{0[1]}\', 200, \'{0[5]}\', \'{0[6]}\', org1.ID, loc1.ID, \'{0[7]}\', \'{0[8]}\' 
+			 FROM zd_new_organization AS org1, zd_new_location AS loc1 
+			 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' 
+			 ON DUPLICATE KEY UPDATE Snippet = \'{0[7]}\', tags = \'{0[8]}\';
+			 '''.format(job, company)
+	f.write(sql + '\n')
+	# print sql
+
+# ---------------- Location Data(City, State, Abbreviation, Country, Latitude, Longitude) -------------
+def update_location(raw_data) :
+	f = open('Result/update_location.sql', 'a')
+	location = prepare_data(raw_data)
+	sql = '''UPDATE zd_new_location
+			 SET State = \'{0[1]}\', Latitude = \'{1}\', Longitude = \'{2}\'
+			 WHERE City = \'{0[0]}\' AND Abbreviation = \'{0[2]}\' AND Country = \'{0[3]}\';
+			 '''.format(location, float(location[4]), float(location[5]))
+	f.write(sql + '\n')
+	# print sql
 
 
-def update_job(data) :
-	# data is <Organization name, Title, Url, City, Abbreviation, Country, Expired_on, tags>
-	f = open('Result/update.sql', 'a')
-	data[0] = MySQLdb.escape_string(data[0].strip())
-	data[1] = MySQLdb.escape_string(data[1].strip())
-	data[2] = MySQLdb.escape_string(data[2].strip())
-	data[3] = MySQLdb.escape_string(data[3].strip())
-	data[4] = MySQLdb.escape_string(data[4].strip())
-	data[5] = MySQLdb.escape_string(data[5].strip())
-	data[6] = MySQLdb.escape_string(data[6].strip())
-	data[7] = MySQLdb.escape_string(data[7].strip())
-	update_sql = '''UPDATE zd_new_job AS job JOIN zd_new_organization AS org JOIN zd_new_location AS loc ON job.Org_id = org.ID AND job.Loc_id = loc.ID SET tags = \'{0[7]}\', Expired_on = \'{0[6]}\' WHERE Title = \'{0[1]}\' AND job.Url = \'{0[2]}\' AND City = \'{0[3]}\' AND Abbreviation = \'{0[4]}\' AND Country = \'{0[5]}\';'''.format(data)
-	f.write(update_sql + '\n')
+# ----------- Job Data(Title, Url, City, Abbreviation, Country, Created_on, Expired_on, Snippet, tags) ----------
+def update_job(company, raw_data) :
+	f = open('Result/update_job.sql', 'a')
+	job = prepare_data(raw_data)
+	sql = '''UPDATE zd_new_job AS job JOIN zd_new_organization AS org JOIN zd_new_location AS loc 
+			 ON job.Org_id = org.ID AND job.Loc_id = loc.ID 
+			 SET Snippet = \'{0[7]}\', tags = \'{0[8]}\', Expired_on = \'{0[7]}\' 
+			 WHERE Title = \'{0[0]}\' AND job.Url = \'{0[1]}\' AND City = \'{0[2]}\' AND Abbreviation = \'{0[3]}\' AND Country = \'{0[4]}\' AND org.Name = \'{1}\';
+			 '''.format(job, company)
+	f.write(sql + '\n')
 
 
 if __name__ == '__main__':
-	database = MySQLdb.connect(host = '127.0.0.1', user = 'db_admin', passwd = 'pusEgu5U', db = 'zoomdojo', port = 3307)
-	cursor = database.cursor()
-
-	cursor.close()
-	database.close()
+	print 'Working!'
 
 # ++++++++++++++++++++++++++++++
-# ALTER TABLE zd_new_location ADD UNIQUE (City, Abbreviation, Country)
+# Job Index (Title, Url, Org_id, Loc_id)
+# Location Index (City, Abbreviation, Country)
 # ++++++++++++++++++++++++++++++
