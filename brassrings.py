@@ -6,9 +6,9 @@ import MySQLdb
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
-from geolocation import send_request_by_location
+from Geolocation.geolocation import send_request_by_location
 from sql_upload import upload_location
-from location_reference import get_abbrevation
+from Geolocation.geolocation_reference import get_abbrevation
 
 def login(sheet_name) :
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
@@ -43,56 +43,6 @@ def data_parse_aetna(raw_data) :
 			tmp = y.split('-')
 			record = ['Aetna', row[2], aetna_url, tmp[1], tmp[0], 'USA', row[6], row[1]] # Posted on time with Req # 
 			records.append(record)
-	return records
-
-# Intel -------------------------
-def data_parse_intel(raw_data) :
-	records = []
-	intel_url = 'https://intel.taleo.net/careersection/10000/jobsearch.ftl'
-	raw_data.pop(0)
-	raw_data.pop(0)
-	for row in raw_data :
-		if row[2] == 'Multiple Locations' :
-			record = ['Intel', row[1], intel_url, '', '', '', row[3]]
-		elif row[2] == 'Israel--':
-			record = ['Intel', row[1], intel_url, '', '', 'Israel', row[3]]
-		else :
-			loc = re.split('-|, ', row[2])
-			country = loc[0]
-			if len(loc) < 2 or 'USA' not in row[2]:
-				state = ''
-			else : 
-				state = get_abbrevation(loc[1])
-				if state is None :
-					state = ''
-			if len(loc) < 3 :
-				city = ''
-			else :
-				city = loc[2]
-			record = ['Intel', row[1], intel_url, city, state, country, row[3]]
-			# print [city, state, country]
-		records.append(record)
-	return records
-
-# Fidelity -------------------------
-def data_parse_fidelity(raw_data) :
-	records = []
-	fidelity_url = 'http://jobs.fidelity.com/apply-now/search-jobs.html'
-	raw_data.pop(0)
-	for row in raw_data :
-		if row[2] == 'Multiple Locations' :
-			record = ['Fidelity', row[1], fidelity_url, '', '', 'USA', row[3]]
-		else :
-			loc = re.split('-', row[2])
-			if loc[0] == 'US' :
-				country = 'USA'
-				state = loc[1]
-			if len(loc) > 2 :
-				city = loc[2]
-			else :
-				city = ''
-			record = ['Fidelity', row[1], fidelity_url, city, state, country, row[3]]
-		records.append(record)
 	return records
 
 # Amway ------------------------------
@@ -170,19 +120,15 @@ def parse_job(records, company) :
 
 if __name__ == '__main__':
 	start_time = time.time()
-	sheet = login('Zheng Brass Rings Jobs to upload March 2015')
+	# sheet = login('Zheng Brass Rings Jobs to upload March 2015')
 
 	# Raw data from different sheets ----------------------------
 	# raw_data = sheet_input(sheet, 'Bayer AG')
 	# raw_data = sheet_input(sheet, 'Aetna Inc.')
-	# raw_data3 = sheet_input(sheet, 'Intel Corporation')
-	# raw_data4 = sheet_input(sheet, 'Fidelity')
 	# raw_data5 = sheet_input(sheet, 'Amway')
 	
 	# records = data_parse_bayer(raw_data)
 	# records = data_parse_aetna(raw_data)
-	# records += data_parse_intel(raw_data3)
-	# records += data_parse_fidelity(raw_data4)
 	# records += data_parse_amway(raw_data5)
 
 	# location = parse_location(records)
@@ -190,8 +136,6 @@ if __name__ == '__main__':
 	# Parsing data with different company ------------------------
 	# parse_job(records, BAYER)
 	# parse_job(records, AETNA)
-	# parse_job(records, INTEL)
-	# parse_job(records, FIDELITY)
 	# parse_job(records, AMWAY)
 
 

@@ -6,7 +6,7 @@ import urllib2
 import re
 import MySQLdb
 # from bs4 import BeautifulSoup
-from geolocation import send_request_by_location
+from Geolocation.geolocation import send_request_by_location
 from sql_upload import upload_location
 from keyword_search import keyword_search
 import sys
@@ -116,7 +116,7 @@ def normal_sql_upload(spreadsheet_name, worksheet_name) :
 		f.write(job_sql + '\n')
 
 def taleo_sql_upload(spreadsheet_name, worksheet_name) :
-	company = 'Intel Corporation' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	company = 'Amazon' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	f = open('Result/'+ company + '.sql', 'a')
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
 	job_sh = gc.open(spreadsheet_name)
@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
-	# get_locations(job_sh, 'Intel_Intern')
+	# get_locations(job_sh, 'Amazon')
 
 	# -------------- Step 2: Url parse ----------------
 	# url_parse(job_sh)
@@ -245,10 +245,10 @@ if __name__ == '__main__':
 	# snippet_parse(job_sh, '') # Pass worksheet Name
 
 	# -------------- Step 4: Tag parse ---------------
-	# tag_parse(job_sh, 'Intel_Intern')
+	# tag_parse(job_sh, 'Amazon')
 
 	# -------------- Step 5: SQL parse -------------------
-	# sql_parse('Test', 'Intel_Intern', True)
+	# sql_parse('Test', 'Amazon', True)
 	# sql_parse(job_sh, '', False)
 
 	print("--- %s seconds ---" % (time.time() - start_time))

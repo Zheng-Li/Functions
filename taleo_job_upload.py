@@ -8,9 +8,8 @@ import random
 import gspread
 import csv
 import time
-from location_reference import get_abbrevation
-from geolocation import send_request_by_location
-from sql_upload import upload_location
+# from Geolocation.geolocation import *
+# from sql_upload import upload_location
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -234,7 +233,7 @@ if __name__ == '__main__':
 
 	# ------------- Taleo Job Details ---------------
 	job_sh = login('Test')
-	sh = job_sh.worksheet('Intel_Intern')
+	sh = job_sh.worksheet('Amazon')
 	raw_data = sh.get_all_values()
 	raw_data.pop(0)
 
@@ -243,6 +242,7 @@ if __name__ == '__main__':
 		url = val[1]
 		if val[6] == '' :
 			snippet = parse_job_detail(browser, url)
+			print str(x) + '.......' + url
 			if snippet is not None :
 				sh.update_acell('G'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
@@ -250,7 +250,7 @@ if __name__ == '__main__':
 				print 'Line No.' + str(x+2) + '.......Job not found'
 	browser.quit() 
 
-	# ------------------ Test -----------------
+	# ------------------ Test for Multilocation -----------------
 	# job_sh = login('Test')
 	# sh = job_sh.worksheet('Intel_Intern')
 	# raw_data = sh.get_all_values()

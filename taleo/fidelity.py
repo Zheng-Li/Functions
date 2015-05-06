@@ -6,7 +6,7 @@ import httplib
 import random
 import gspread
 from time import sleep
-from geolocation_reference import get_abbrevation
+# from Geolocation.geolocation_reference import get_abbrevation
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -40,8 +40,7 @@ def url_parse(url) :
 		print 'Unknown error!'
 		return
 
-# ---------------- Fidelity ------------------
-def fidelity_parse_javascript(url, page) :
+def fidelity_parse_jobs(url, page) :
 	browser = webdriver.Firefox()
 	browser.get(url)
 
@@ -94,10 +93,13 @@ if __name__ == '__main__':
 	url = 'https://fidelity.taleo.net/careersection/10020/jobsearch.ftl'
 	page = url_parse(url)
 
+	# print sys.path
+	# get_abbrevation('New York')
+
 	# Get certain page 
 	# fidelity_parse_javascript(url, 2)
 
 	# Get whole range of pages
-	for i in range(0, 10) :
-		fidelity_parse_javascript(url, i)
+	# for i in range(0, 10) :
+	# 	fidelity_parse_javascript(url, i)
 

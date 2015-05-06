@@ -42,22 +42,22 @@ def url_parse(url) :
 		return
 
 
-def adobe_parse_javascript(browser, url, page) :
+def adobe_parse_jobs(browser, url, page) :
 	browser.get(url)
 
-	# if page == 1 :
-	if  True :
+	if page == 1 :
+	# if  True :
 		display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, 'dropListSize')))
 		Select(display).select_by_value('100')
 
 	sleep(2)
-	# if page != 1:
-	for i in range(1, page):
+	if page != 1:
+	# for i in range(1, page):
 		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "pagerpanel")))
 		button = pager.find_elements_by_tag_name("a")[-1]
 		button.click()
 		sleep(1)
-		print page
+		# print page
 
 	job_url_base = 'https://adobe.taleo.net/careersection/2/jobdetail.ftl?job='
 	records = []
@@ -86,14 +86,14 @@ def adobe_parse_javascript(browser, url, page) :
 		return
 
 
-# ------------- Taleo sheet update --------------
+# ------------- Adobe sheet update --------------
 def update_spreadsheet(data, sheet_name, loc) :
 	sheet = login('Test')
 	worksheet = sheet.worksheet(sheet_name)
 
 	for x, row in enumerate(data) :
-		num = x + 2 + (loc-1)*100
-		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
+		num = x + 2 + (loc-1)*100 # 100 records per page
+		cell_list = worksheet.range('A'+str(num)+':F'+str(num)) # Created_on time included
 		for i, val in enumerate(row) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
@@ -104,12 +104,8 @@ if __name__ == '__main__':
 	page = url_parse(url)
 
 	browser = webdriver.Firefox()
-	adobe_parse_javascript(browser, url, 5)
-	# for i in range(1, 6) :
-	# 	adobe_parse_javascript(browser, url, i)
-	# browser.quit()
-
-
-
-# !!!!!!!!!!!!!!!! Bug with run from first page !!!!!!!!!!!!!!!!!!!
+	# adobe_parse_jobs(browser, url, 5)
+	for i in range(1, 6) :
+		adobe_parse_jobs(browser, url, i)
+	browser.quit()
 

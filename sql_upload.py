@@ -5,18 +5,17 @@ import csv
 def prepare_data(raw_data) :
 	data = []
 	for d in raw_data :
-		data.append(MySQLdb.escape_string(d.strip()))
+		if type(d) is str:
+			data.append(MySQLdb.escape_string(d.strip()))
+		else :
+			data.append(d)
 	return data
 
 # ------------ Location Data (City, State, Abbreviation, Country, Latitude, Longitude) ---------------
 def upload_location(raw_data) :
 	f = open('Result/upload_location.sql', 'a')
 	location = prepare_data(raw_data)
-	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) 
-			 VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) 
-			 ON DUPLICATE KEY 
-			 UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);
-			 '''.format(location, float(location[4]), float(location[5]))
+	sql = '''INSERT INTO zd_new_location(City, State, Abbreviation, Country, Latitude, Longitude) VALUES (\'{0[0]}\', \'{0[1]}\', \'{0[2]}\', \'{0[3]}\', {1}, {2}) ON DUPLICATE KEY UPDATE State = VALUES(State), Latitude = VALUES(Latitude), Longitude = VALUES(Longitude);'''.format(location, float(location[4]), float(location[5]))
 	f.write(sql + '\n')
 	# print sql
 
@@ -41,10 +40,7 @@ def upload_job(company, raw_data) :
 def update_location(raw_data) :
 	f = open('Result/update_location.sql', 'a')
 	location = prepare_data(raw_data)
-	sql = '''UPDATE zd_new_location
-			 SET State = \'{0[1]}\', Latitude = \'{1}\', Longitude = \'{2}\'
-			 WHERE City = \'{0[0]}\' AND Abbreviation = \'{0[2]}\' AND Country = \'{0[3]}\';
-			 '''.format(location, float(location[4]), float(location[5]))
+	sql = '''UPDATE zd_new_location SET State = \'{0[1]}\', Latitude = \'{1}\', Longitude = \'{2}\' WHERE City = \'{0[0]}\' AND Abbreviation = \'{0[2]}\' AND Country = \'{0[3]}\';'''.format(location, float(location[4]), float(location[5]))
 	f.write(sql + '\n')
 	# print sql
 

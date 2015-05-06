@@ -180,14 +180,6 @@ if __name__ == '__main__':
 	text = ''''''
 	print keyword_search(text, keywords)
 
-
-	# ------------------ Normal sheet input --------------------------
-	# sheets = login('Template Standard for New Jobs Upload March 2015')
-	# records = sheet_input(sheets, 'Sheet1')
-	# records += sheet_input(sheets, 'Sheet2')
-	# records += sheet_input(sheets, 'Sheet3')
-	# print 'Download....Done'
-
 	# --------------------- Normal location input -----------------------
 	# for rec in records :
 	# 	location.append([rec[3].strip(), rec[4].strip(), rec[5].strip()])
@@ -199,55 +191,4 @@ if __name__ == '__main__':
 	# 	upload_location(result)
 	# 	# print result
 
-	# ----------- NOT IN USE -------------
-	# raw_key = csv_input('keywords.csv')
-	# for key in raw_key :
-	# 	keywords.append(key[0].lower())
-	# print 'Keys....Done'
-	# for count, rec in enumerate(records) :
-	# 	r = url_parse(rec, 2)		
-	# 	if r is not None:
-	# 		print str(count) + '---' + r[1] + '...Done'
-
-	# Test url input
-	# urls.append('')
-
-	# Double check error
-	# recs = csv_input('recheck.csv')
-	# for count, rec in enumerate(recs) :
-	# 	re_rec = url_parse(rec, 2)
-	# 	if re_rec is not None :
-	# 		print str(count) + '---' + re_rec[1] + '...Done'
-
 	print("--- %s seconds ---" % (time.time() - start_time))
-
-
-
-
-
-
-
-# --------------------------------- No longer in use -----------------------------
-# def url_save(rec):
-# 	output_file = 'result.csv'
-# 	url_writer = csv.writer(open(output_file, 'ab'))
-# 	url_writer.writerow([rec['url'], rec['tag'], rec['error']])
-
-# def url_setup_sheet(sheet) :
-# 	worksheet = sheet.worksheet('Copy of CR')
-# 	url_list = worksheet.col_values(4)
-# 	return url_list
-
-# def keyword_setup_by_keyboard () :
-# 	keyword_input = raw_input('What is your keyword setup?\n').split();
-# 	keywords = [key.lower() for key in keyword_input]
-# 	return keywords
-
-# def url_setup_csv(url_file) :
-# 	f = url_file
-# 	url_reader = csv.DictReader(open(f, 'rb'))
-# 	for row in url_reader :
-# 		if url_check(row) :
-# 			print 'Skipped ' + row['Organization']
-# 		else :
-# 			urls.append([row['Organization'], row['internship_url']])

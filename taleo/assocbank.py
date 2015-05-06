@@ -99,7 +99,7 @@ def assocbank_location(location) :
 	return result
 
 
-
+# ---------------- NOT FINISHED ---------------
 
 if __name__ == '__main__':
 	url = 'https://assocbank.taleo.net/careersection/prof/jobsearch.ftl?lang=en'

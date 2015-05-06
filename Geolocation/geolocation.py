@@ -17,7 +17,7 @@ def read_file(file_name):
 	f = csv.reader(open(file_name, 'rU'))
 	raw_data = []
 	for row in f : 
-		raw_data.append([row[0], row[1], row[2]])
+		raw_data.append([row[0], row[1], row[2], row[3]])
 	return raw_data
 
 def write_file(file_name, data):
@@ -72,19 +72,20 @@ def parse_json(code) :
 
 
 if __name__ == "__main__":
-   # main(sys.argv[1:])
-   print 'Working!'
+	# main(sys.argv[1:])
+	print 'Working!'
 
 
-# ---------------------- Useful File Update------------------------
+
+# ---------------------- Useful File ------------------------
 
 # SQL = '''
-# 	SELECT City, State, Abbreviation, Country
-# 	INTO OUTFILE '/tmp/location_fix_1.csv'
-# 	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-#   	LINES TERMINATED BY '\n'
-# 	FROM zd_new_location
-# 	WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
+	# SELECT City, State, Abbreviation, Country
+	# INTO OUTFILE '/tmp/location_fix.csv'
+	# FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+ #  	LINES TERMINATED BY '\n'
+	# FROM zd_new_location
+	# WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
 # 	'''
 
 # def main(argv):
