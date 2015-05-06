@@ -235,8 +235,8 @@ if __name__ == '__main__':
 	job_sh = gc.open('Test')
 
 	# -------------- Step 1: Location parse ------------------
-	# location_parse(job_sh)
-	# get_locations(job_sh, 'Amazon')
+	location_parse(job_sh)
+	get_locations(job_sh, 'Bayer AG')
 
 	# -------------- Step 2: Url parse ----------------
 	# url_parse(job_sh)
