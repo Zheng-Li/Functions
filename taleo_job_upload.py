@@ -143,11 +143,13 @@ def parse_job_detail(browser, url) :
 
 	browser.get(url)
 	try :
-		job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "editablesection")))
+		job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
 		job_data = job_data.get_attribute('innerHTML')
-		soup = BeautifulSoup(job_data)
-		trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
-		result = ''.join(str(tag) for tag in trimed_data)
+		# soup = BeautifulSoup(job_data)
+		# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
+		# result = ''.join(str(tag) for tag in trimed_data)
+
+		result = job_data
 
 		# # ------------ Test for Multiple locations ---------------
 		# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
@@ -245,29 +247,29 @@ if __name__ == '__main__':
 	start_time = time.time()
 
 	# ----------- Regular Site ------------
-	url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
-	page = url_parse(url)
-	result = table_parse(page)
-	update_spreadsheet(result, 'Bayer AG', 1)
+	# url = 'https://career.bayer.com/en/career/job-search/?accessLevel=student&functional_area=&country=*&location=&company=&fulltext='
+	# page = url_parse(url)
+	# result = table_parse(page)
+	# update_spreadsheet(result, 'Bayer AG', 1)
 
 	# ------------- Taleo Job Details ---------------
-	# job_sh = login('Test')
-	# sh = job_sh.worksheet('Amazon')
-	# raw_data = sh.get_all_values()
-	# raw_data.pop(0)
+	job_sh = login('Test')
+	sh = job_sh.worksheet('BASF Corporation')
+	raw_data = sh.get_all_values()
+	raw_data.pop(0)
 
-	# browser = webdriver.Firefox()
-	# for x, val in enumerate(raw_data) :
-	# 	url = val[1]
-	# 	if val[6] == '' :
-	# 		snippet = parse_job_detail(browser, url)
-	# 		print str(x) + '.......' + url
-	# 		if snippet is not None :
-	# 			sh.update_acell('G'+str(x+2), snippet)
-	# 			print 'Line No.' + str(x+2) + '.......' + url
-	# 		else :
-	# 			print 'Line No.' + str(x+2) + '.......Job not found'
-	# browser.quit() 
+	browser = webdriver.Firefox()
+	for x, val in enumerate(raw_data) :
+		url = val[1]
+		if val[6] == '' :
+			snippet = parse_job_detail(browser, url)
+			print str(x) + '.......' + url
+			if snippet is not None :
+				sh.update_acell('G'+str(x+2), snippet)
+				print 'Line No.' + str(x+2) + '.......' + url
+			else :
+				print 'Line No.' + str(x+2) + '.......Job not found'
+	browser.quit() 
 
 	# ------------------ Test for Multilocation -----------------
 	# job_sh = login('Test')

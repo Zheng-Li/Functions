@@ -4,7 +4,7 @@ import gspread
 import time
 import urllib2
 import re
-import MySQLdb
+# import MySQLdb
 # from bs4 import BeautifulSoup
 from Geolocation.geolocation import send_request_by_location
 from sql_upload import upload_location
@@ -40,6 +40,7 @@ def get_locations(sh, worksheet) :
 		tmp = send_request_by_location(item[0], item[1], item[2])
 		result.append(tmp)
 		upload_location(tmp)
+		print tmp
 	return result
 
 def check_job_valid(url, text) :
@@ -235,14 +236,14 @@ if __name__ == '__main__':
 	job_sh = gc.open('Test')
 
 	# -------------- Step 1: Location parse ------------------
-	location_parse(job_sh)
-	get_locations(job_sh, 'Bayer AG')
+	# location_parse(job_sh)
+	# get_locations(job_sh, 'BAssocia ted Bank (Associated Banc-Corp)')
 
 	# -------------- Step 2: Url parse ----------------
 	# url_parse(job_sh)
 
 	# -------------- Step 3: Snippet parse -----------------
-	# snippet_parse(job_sh, '') # Pass worksheet Name
+	# snippet_parse(job_sh, 'Associated Bank (Associated Banc-Corp)') # Pass worksheet Name
 
 	# -------------- Step 4: Tag parse ---------------
 	# tag_parse(job_sh, 'Amazon')

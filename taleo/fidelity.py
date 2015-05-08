@@ -6,11 +6,12 @@ import httplib
 import random
 import gspread
 from time import sleep
-# from Geolocation.geolocation_reference import get_abbrevation
+from Geolocation.geolocation_reference import get_abbrevation
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -40,14 +41,20 @@ def url_parse(url) :
 		print 'Unknown error!'
 		return
 
-def fidelity_parse_jobs(url, page) :
+def fidelity_parse_jobs(url, page, key) :
 	browser = webdriver.Firefox()
 	browser.get(url)
 
-	for i in range(1, page) :
-		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "jobPager")))
-		button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
-		button.click()
+	# for i in range(1, page) :
+	# 	pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.ID, "jobPager")))
+	# 	button = pager.find_elements_by_tag_name("span")[3].find_element_by_tag_name("span").find_element_by_tag_name("a")
+	# 	button.click()
+
+	#------------ Add keyword to search ---------------
+	key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="KEYWORD"]')))
+	key_search.send_keys(key)
+	key_search.send_keys(Keys.ENTER)
+	sleep(1)
 
 	records = []
 	WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.TAG_NAME, "tr")))
@@ -63,8 +70,10 @@ def fidelity_parse_jobs(url, page) :
 		print record
 
 	# update_spreadsheet(records, 'Intel', page)
-	csv_output(records, 'Result/fidelity.csv')
+	# csv_output(records, 'Result/fidelity.csv')
+	
 	browser.quit()
+	return records
 
 def fidelity_location(location) :
 	if location == 'Multiple Locations' :
@@ -93,13 +102,16 @@ if __name__ == '__main__':
 	url = 'https://fidelity.taleo.net/careersection/10020/jobsearch.ftl'
 	page = url_parse(url)
 
-	# print sys.path
-	# get_abbrevation('New York')
+	result = []
+	result += fidelity_parse_jobs(url, 1, 'intern')
+	result += fidelity_parse_jobs(url, 1, 'college graduates')
+
+	update_spreadsheet(result, 'Fidelity_Intern', 1)
 
 	# Get certain page 
-	# fidelity_parse_javascript(url, 2)
+	# fidelity_parse_jobs(url, 2)
 
 	# Get whole range of pages
 	# for i in range(0, 10) :
-	# 	fidelity_parse_javascript(url, i)
+	# 	fidelity_parse_jobs(url, i)
 
