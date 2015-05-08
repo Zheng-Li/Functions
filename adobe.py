@@ -45,8 +45,8 @@ def url_parse(url) :
 def adobe_parse_jobs(browser, url, page) :
 	browser.get(url)
 
-	if page == 1 :
-	# if  True :
+	# if page == 1 :
+	if  True :
 		display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, 'dropListSize')))
 		Select(display).select_by_value('100')
 
@@ -59,7 +59,9 @@ def adobe_parse_jobs(browser, url, page) :
 		sleep(1)
 		# print page
 
-	job_url_base = 'https://adobe.taleo.net/careersection/2/jobdetail.ftl?job='
+	# job_url_base = 'https://adobe.taleo.net/careersection/2/jobdetail.ftl?job='
+	job_url_base = 'https://adobe.taleo.net/careersection/adobe_global/jobdetail.ftl?job='
+
 	records = []
 	try :
 		sleep(2)
@@ -77,7 +79,7 @@ def adobe_parse_jobs(browser, url, page) :
 			records.append(record)
 			print 'Page ' + str(page) + '....' + job_title
 
-		update_spreadsheet(records, 'Adobe', page)
+		update_spreadsheet(records, 'Adobe_global', page)
 	except StaleElementReferenceException:
 		print 'Selenium wait founction error'
 		return
@@ -100,12 +102,13 @@ def update_spreadsheet(data, sheet_name, loc) :
 
 
 if __name__ == '__main__':
-	url = 'https://adobe.taleo.net/careersection/2/jobsearch.ftl'
+	# url = 'https://adobe.taleo.net/careersection/2/jobsearch.ftl'
+	url = 'https://adobe.taleo.net/careersection/adobe_global/jobsearch.ftl'
 	page = url_parse(url)
 
 	browser = webdriver.Firefox()
 	# adobe_parse_jobs(browser, url, 5)
-	for i in range(1, 6) :
+	for i in range(1, 5) :
 		adobe_parse_jobs(browser, url, i)
 	browser.quit()
 
