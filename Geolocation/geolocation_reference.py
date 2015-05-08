@@ -66,7 +66,7 @@ def get_full_name(abbrevation) :
 		full_name = abbrevation
 		return full_name
 
-def get_abbrevation(full_name) :
+def get_abbreviation(full_name) :
 	for abbrevation, full in abbr.iteritems() :
 		if full_name == full :
 			return abbrevation

@@ -232,23 +232,23 @@ if __name__ == '__main__':
 	# result = table_parse(page)
 
 	# ------------- Taleo Job Details ---------------
-	job_sh = login('Test')
-	sh = job_sh.worksheet('Amazon')
-	raw_data = sh.get_all_values()
-	raw_data.pop(0)
+	# job_sh = login('Test')
+	# sh = job_sh.worksheet('Amazon')
+	# raw_data = sh.get_all_values()
+	# raw_data.pop(0)
 
-	browser = webdriver.Firefox()
-	for x, val in enumerate(raw_data) :
-		url = val[1]
-		if val[6] == '' :
-			snippet = parse_job_detail(browser, url)
-			print str(x) + '.......' + url
-			if snippet is not None :
-				sh.update_acell('G'+str(x+2), snippet)
-				print 'Line No.' + str(x+2) + '.......' + url
-			else :
-				print 'Line No.' + str(x+2) + '.......Job not found'
-	browser.quit() 
+	# browser = webdriver.Firefox()
+	# for x, val in enumerate(raw_data) :
+	# 	url = val[1]
+	# 	if val[6] == '' :
+	# 		snippet = parse_job_detail(browser, url)
+	# 		print str(x) + '.......' + url
+	# 		if snippet is not None :
+	# 			sh.update_acell('G'+str(x+2), snippet)
+	# 			print 'Line No.' + str(x+2) + '.......' + url
+	# 		else :
+	# 			print 'Line No.' + str(x+2) + '.......Job not found'
+	# browser.quit() 
 
 	# ------------------ Test for Multilocation -----------------
 	# job_sh = login('Test')
@@ -272,7 +272,7 @@ if __name__ == '__main__':
 
 	# -------------- Taleo Location -------------
 	# spreadsheet = login('Test')
-	# # update_location_from_sheet(spreadsheet, 0, 1)
+	# update_location_from_sheet(spreadsheet, 0, 1)
 	# worksheet = spreadsheet.worksheet('Locations')
 	# data = worksheet.get_all_values()
 	# for x, val in enumerate(data) :

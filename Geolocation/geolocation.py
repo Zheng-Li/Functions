@@ -5,6 +5,7 @@ import urllib2
 import string
 from time import sleep
 from geolocation_reference import get_full_name
+from geolocation_reference import get_abbreviation
 import random
 import sys
 import getopt
@@ -49,7 +50,7 @@ def send_request_by_location(city, state, country) :
 	elif state and len(state) > 2:
 		address = state + ',+' + address
 		state_full_name = state
-		state = ''
+		state = get_abbreviation(state)
 	if city :
 		address = city + ',+' + address
 	address = address.replace(' ', '+')

@@ -44,18 +44,22 @@ def url_parse(url) :
 
 def assocbank_parse_javascript(browser, url, page) :
 	browser.get(url)
-
+	
 	display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, 'dropListSize')))
 	Select(display).select_by_value('100')
 
+	sleep(1)
 	for i in range(1, page) :
 		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, "rlPager")))
 		button = pager.find_elements_by_tag_name("a")[-1]
 		button.click()
+		sleep(1)
 
-	sheet = login('Test')
-	worksheet = sheet.worksheet('Associated Bank (Associated Banc-Corp)')
+	job_url_base = 'https://assocbank.taleo.net/careersection/prof/jobdetail.ftl?job='
+	records = []
+
 	try :
+		sleep(1)
 		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'contentlist')))
 		jobs = table.find_element_by_tag_name("tbody").find_elements_by_tag_name("tr")[::2]
 		records = []
@@ -63,21 +67,12 @@ def assocbank_parse_javascript(browser, url, page) :
 			job = j.find_elements_by_class_name('contentlinepanel')
 			job_title = job[0].find_element_by_tag_name('a').text
 			job_location = job[1].find_element_by_tag_name('span').text
+			job_url = job_url_base + job[0].find_elements_by_tag_name('span')[-1].text
 			for item in assocbank_location(job_location) :
-				record = [job_title] + item
+				record = [job_title, job_url] + item
 				records.append(record)
-			print job_title + '......Done'
-
-		for x, row in enumerate(records) :
-			# row_num = x+2+(page-1)*150 # In case of multiple location
-			row_num = x+220
-			cell_list = worksheet.range('A'+str(row_num)+':D'+str(row_num))
-			for y, val in enumerate(row) :
-				cell_list[y].value = val
-			worksheet.update_cells(cell_list)
-			print 'Row No.' + str(row_num) + ': '
-			print row
-
+			print job_title + '---' + job_url + '......Done'
+		return records
 	except StaleElementReferenceException:
 		print 'Selenium wait founction error'
 		return
@@ -95,18 +90,30 @@ def assocbank_location(location) :
 		if len(sl)>1 :
 			state = sl[0].strip()
 			city = sl[1].strip()
-			result.append([country, state, city])
+			result.append([city, state, country])
 	return result
-
-
-# ---------------- NOT FINISHED ---------------
 
 if __name__ == '__main__':
 	url = 'https://assocbank.taleo.net/careersection/prof/jobsearch.ftl?lang=en'
 	page = url_parse(url)
 
+	result = []
+
 	browser = webdriver.Firefox()
 	# assocbank_parse_javascript(browser, url, 3)
-	# for i in range(3, 4) :
-	# 	assocbank_parse_javascript(browser, url, i)
+	for i in range(1, 4) :
+		result += assocbank_parse_javascript(browser, url, i)
 	browser.quit()
+
+	sheet = login('Test')
+	worksheet = sheet.worksheet('Associated Bank (Associated Banc-Corp)')
+
+	for x, row in enumerate(result) :
+		# row_num = x+2+(page-1)*150 # In case of multiple location
+		row_num = x+2
+		cell_list = worksheet.range('A'+str(row_num)+':E'+str(row_num))
+		for y, val in enumerate(row) :
+			cell_list[y].value = val
+		worksheet.update_cells(cell_list)
+		print 'Row No.' + str(row_num) + ': '
+		print row
