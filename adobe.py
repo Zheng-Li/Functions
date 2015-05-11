@@ -42,42 +42,32 @@ def url_parse(url) :
 		return
 
 
-def adobe_parse_jobs(browser, url, page) :
-	browser.get(url)
+def adobe_parse_jobs(browser, page) :
 
-	if page == 1 :
-	# if  True :
-		display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, 'dropListSize')))
-		Select(display).select_by_value('100')
+	# job_url_base = 'https://adobe.taleo.net/careersection/2/jobdetail.ftl?job='
+	job_url_base = 'https://adobe.taleo.net/careersection/adobe_global/jobdetail.ftl?job='
 
-	sleep(2)
-	if page != 1:
-	# for i in range(1, page):
-		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "pagerpanel")))
-		button = pager.find_elements_by_tag_name("a")[-1]
-		button.click()
-		sleep(1)
-		# print page
-
-	job_url_base = 'https://adobe.taleo.net/careersection/2/jobdetail.ftl?job='
 	records = []
 	try :
 		sleep(2)
 		table = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'contentlist')))
-		# table = browser.find_element_by_class_name('contentlist')
 		jobs = table.find_element_by_tag_name("tbody").find_elements_by_tag_name("tr")[::2]
 		for j in jobs:
 			job = j.find_elements_by_class_name('contentlinepanel')
 			job_title = job[0].find_element_by_tag_name('a').text
-			# job_url = job[0].find_element_by_tag_name('a')
-			job_location = job[1].text
 			job_posted = job[2].find_elements_by_tag_name('span')[2].text
 			job_url = job_url_base + job[2].find_elements_by_tag_name('span')[-1].text
-			record = [job_title, job_url, job_location, '', '', job_posted]
-			records.append(record)
-			print 'Page ' + str(page) + '....' + job_title
+			job_location = job[1].text
 
-		update_spreadsheet(records, 'Adobe', page)
+			loc = re.split(', ', job_location)
+			for l in loc :
+				ll = re.split('-', l)
+				city = ll[2]
+				country = ll[1]
+				record = [job_title, job_url, city, '', country, job_posted]
+				records.append(record)
+				print 'Page ' + str(page) + '....' + job_title
+		return records
 	except StaleElementReferenceException:
 		print 'Selenium wait founction error'
 		return
@@ -87,25 +77,38 @@ def adobe_parse_jobs(browser, url, page) :
 
 
 # ------------- Adobe sheet update --------------
-def update_spreadsheet(data, sheet_name, loc) :
+def update_spreadsheet(data, sheet_name) :
 	sheet = login('Test')
 	worksheet = sheet.worksheet(sheet_name)
 
 	for x, row in enumerate(data) :
-		num = x + 2 + (loc-1)*100 # 100 records per page
+		num = x + 2
 		cell_list = worksheet.range('A'+str(num)+':F'+str(num)) # Created_on time included
 		for i, val in enumerate(row) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
+		print 'Row No.' + str(x) + '...' + cell_list[0].value
 
 
 if __name__ == '__main__':
-	url = 'https://adobe.taleo.net/careersection/2/jobsearch.ftl'
-	page = url_parse(url)
+	# url = 'https://adobe.taleo.net/careersection/2/jobsearch.ftl'
+	url = 'https://adobe.taleo.net/careersection/adobe_global/jobsearch.ftl'
+	result = []
 
 	browser = webdriver.Firefox()
-	# adobe_parse_jobs(browser, url, 5)
-	for i in range(1, 6) :
-		adobe_parse_jobs(browser, url, i)
+	browser.get(url)
+	display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, 'dropListSize')))
+	Select(display).select_by_value('100')
+	sleep(1)
+
+	for i in range(1, 4) :
+		if i != 1:
+			pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "pagerpanel")))
+			button = pager.find_elements_by_tag_name("a")[-1]
+			button.click()
+			sleep(1)
+		result += adobe_parse_jobs(browser, i)
+
 	browser.quit()
+	update_spreadsheet(result, 'Adobe_global')
 

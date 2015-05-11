@@ -39,6 +39,7 @@ def get_locations(sh, worksheet) :
 	for item in locations :
 		tmp = send_request_by_location(item[0], item[1], item[2])
 		result.append(tmp)
+		print tmp
 		upload_location(tmp)
 		print tmp
 	return result
@@ -116,8 +117,7 @@ def normal_sql_upload(spreadsheet_name, worksheet_name) :
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
 		f.write(job_sql + '\n')
 
-def taleo_sql_upload(spreadsheet_name, worksheet_name) :
-	company = 'Amazon' # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def taleo_sql_upload(spreadsheet_name, worksheet_name, company) :
 	f = open('Result/'+ company + '.sql', 'a')
 	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
 	job_sh = gc.open(spreadsheet_name)
@@ -186,8 +186,8 @@ def snippet_parse(spreadsheet_name, worksheet_name) :
 				sh.update_acell('I'+str(x+2), snippet)
 
 
-def tag_parse(spreadsheet_name, worksheet_name) :
-	sh_list = spreadsheet_name.worksheets()
+def tag_parse(spreadsheet, worksheet_name) :
+	sh_list = spreadsheet.worksheets()
 	keyword_dict = get_keyword_dict()
 	for x in range(0,1) :
 		sh = job_sh.worksheet(worksheet_name)
@@ -222,11 +222,11 @@ def tag_parse(spreadsheet_name, worksheet_name) :
 			
 
 
-def sql_parse(spreadsheet_name, worksheet_name, taleo) :
+def sql_parse(spreadsheet_name, worksheet_name, company, taleo) :
 	if taleo :
-		taleo_sql_upload(spreadsheet_name, worksheet_name)
+		taleo_sql_upload(spreadsheet_name, worksheet_name, company)
 	else :
-		normal_sql_upload(spreadsheet_name, worksheet_name)
+		normal_sql_upload(spreadsheet_name, worksheet_name, company)
 
 
 if __name__ == '__main__':
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
-	# get_locations(job_sh, 'BAssocia ted Bank (Associated Banc-Corp)')
+	# get_locations(job_sh, 'BASF Corporation')
 
 	# -------------- Step 2: Url parse ----------------
 	# url_parse(job_sh)
@@ -246,10 +246,10 @@ if __name__ == '__main__':
 	# snippet_parse(job_sh, 'Associated Bank (Associated Banc-Corp)') # Pass worksheet Name
 
 	# -------------- Step 4: Tag parse ---------------
-	# tag_parse(job_sh, 'Amazon')
+	# tag_parse(job_sh, 'Adobe_global')
 
 	# -------------- Step 5: SQL parse -------------------
-	# sql_parse('Test', 'Amazon', True)
+	# sql_parse('Test', 'BASF Corporation', 'BASF Corporation' ,True)
 	# sql_parse(job_sh, '', False)
 
 	print("--- %s seconds ---" % (time.time() - start_time))

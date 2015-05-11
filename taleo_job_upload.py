@@ -143,13 +143,13 @@ def parse_job_detail(browser, url) :
 
 	browser.get(url)
 	try :
-		job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
+		job_data = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'editablesection')))
 		job_data = job_data.get_attribute('innerHTML')
-		# soup = BeautifulSoup(job_data)
-		# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
-		# result = ''.join(str(tag) for tag in trimed_data)
+		soup = BeautifulSoup(job_data)
+		trimed_data =  soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
+		result = ''.join(str(tag) for tag in trimed_data)
 
-		result = job_data
+		# result = job_data
 
 		# # ------------ Test for Multiple locations ---------------
 		# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
@@ -254,7 +254,7 @@ if __name__ == '__main__':
 
 	# ------------- Taleo Job Details ---------------
 	job_sh = login('Test')
-	sh = job_sh.worksheet('BASF Corporation')
+	sh = job_sh.worksheet('Fidelity_Intern')
 	raw_data = sh.get_all_values()
 	raw_data.pop(0)
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
 		url = val[1]
 		if val[6] == '' :
 			snippet = parse_job_detail(browser, url)
-			print str(x) + '.......' + url
+			# print str(x) + '.......' + url
 			if snippet is not None :
 				sh.update_acell('G'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
 	# -------------- Taleo Location -------------
 	# spreadsheet = login('Test')
-	# # update_location_from_sheet(spreadsheet, 0, 1)
+	# update_location_from_sheet(spreadsheet, 0, 1)
 	# worksheet = spreadsheet.worksheet('Locations')
 	# data = worksheet.get_all_values()
 	# for x, val in enumerate(data) :
