@@ -64,13 +64,25 @@ def parse_job_search_page(browser, url, keyword) :
 	browser.get(url) 
 
 	# ------------ Add keyword to search ---------------
-	# key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-	# key_search.send_keys(key)
-	# key_search.send_keys(Keys.ENTER)
-	# sleep(1)
+	key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-term"]')))
+	key_search.send_keys(keyword)
+	key_search.send_keys(Keys.ENTER)
+	sleep(1)
+
+	result = []
+	WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="gridResult"]/table/thead')))
+	table = browser.find_element_by_xpath('//*[@id="gridResult"]/table/tbody')
+	rows = table.find_elements_by_tag_name('tr')
+	jobs = [rows[i] for i in (2, 6, 10, 14, 18, 22, 26, 30, 34)]
+	if len(rows) > 39: 
+		jobs += row[38]
+	for job in jobs :
+		title = job.find_element_by_tag_name('a').text
+		url = job.find_element_by_tag_name('a').get_attribute('href')
+		print title
 
 
-	return 
+	return ''
 
 
 def parse_job_location(location) :
@@ -120,21 +132,24 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 
 if __name__ == '__main__':
 
-	url = ''
-	spreadsheet = ''
-	worksheet = ''
-	keyword = '' # Keywords if certain jobs are needed.
+	url = 'https://jobs.qualcomm.com/public/search.xhtml'
+	spreadsheet = 'Test'
+	worksheet = 'Qualcomm'
+	keyword1 = 'Intern' # Keywords if certain jobs are needed.
+	keyword2 = 'Analyst'
 
 	# -------- Parse job search page -----------
 	browser = webdriver.Firefox()
-	parsed_data = parse_job_search_page(browser, url, keyword)
+	parsed_data = []
+	parsed_data += parse_job_search_page(browser, url, keyword1)
+	parsed_data += parse_job_search_page(browser, url, keyword2)
 	update_spreadsheet(parsed_data, spreadsheet, worksheet)
-	browser.quit()
+	# browser.quit()
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
-	browser = webdriver.Firefox()
-	parse_job_details(browser, spreadsheet, worksheet)
-	browser.quit()
+	# browser = webdriver.Firefox()
+	# parse_job_details(browser, spreadsheet, worksheet)
+	# browser.quit()
 
 
 

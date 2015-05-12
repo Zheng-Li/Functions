@@ -79,21 +79,21 @@ def parse_job_location(location) :
 	return location # <City, Abbreviation, Country>
 
 
-def parse_job_details(browser, spreadsheet, worksheet) :
+def parse_job_details(spreadsheet, worksheet) :
 	ss = login(spreadsheet)
 	ws = ss.worksheet(worksheet)
 	raw_data = ws.get_all_values()
-	raw_data.pop(0) # Remove header line from spreadsheet
+	# raw_data.pop(0) # Remove header line from spreadsheet
 
 	for x, val in enumerate(raw_data) :
-		url = val[1]
-		browser.get(url)
-		if val[6] == '' :
+		url = val[4]
+		if x > 41:
+			browser = webdriver.Firefox()
 			browser.get(url)
 			try :
-				snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
-				snippet = snippet.get_attribute('innerHTML')
-				# soup = BeautifulSoup(snippet)
+				job_data = WebDriverWait(browser, 25).until(EC.presence_of_element_located((By.ID, 'db-jobad')))
+				job_data = job_data.get_attribute('innerHTML')
+				# soup = BeautifulSoup(job_data)
 				# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
 				# result = ''.join(str(tag) for tag in trimed_data)
 
@@ -107,34 +107,31 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 			except TimeoutException:
 				print 'Timeout Error!'
 				return
-				
-			if snippet is not None :
-				ws.update_acell('G'+str(x+2), snippet)
-				print 'Line No.' + str(x+2) + '.......' + url
+
+			if job_data is not None :
+				ws.update_acell('L'+str(x+1), job_data)
+				print 'Line No.' + str(x+1) + '.......' + url
 			else :
-				print 'Line No.' + str(x+2) + '.......Job not found'
-				
+				print 'Line No.' + str(x+1) + '.......Job not found'
+			browser.quit()
 		else :
-			print 'Line No.' + str(x+2) + '.......Skipped'
+			print 'Line No.' + str(x+1) + '.......Skipped'
 
 
 if __name__ == '__main__':
 
-	url = ''
-	spreadsheet = ''
-	worksheet = ''
-	keyword = '' # Keywords if certain jobs are needed.
+	# --------- Test -----------
+	spreadsheet = 'Project_13_0507'
+	worksheet = 'Can not parse'
 
 	# -------- Parse job search page -----------
-	browser = webdriver.Firefox()
-	parsed_data = parse_job_search_page(browser, url, keyword)
-	update_spreadsheet(parsed_data, spreadsheet, worksheet)
-	browser.quit()
+	# browser = webdriver.Firefox()
+	# parsed_data = parse_job_search_page(browser, url, keyword)
+	# update_spreadsheet(parsed_data, spreadsheet, worksheet)
+	# browser.quit()
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
-	browser = webdriver.Firefox()
-	parse_job_details(browser, spreadsheet, worksheet)
-	browser.quit()
+	parse_job_details(spreadsheet, worksheet)
 
 
 

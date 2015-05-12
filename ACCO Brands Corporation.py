@@ -83,19 +83,23 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 	ss = login(spreadsheet)
 	ws = ss.worksheet(worksheet)
 	raw_data = ws.get_all_values()
-	raw_data.pop(0) # Remove header line from spreadsheet
+	# raw_data.pop(0) # Remove header line from spreadsheet
 
 	for x, val in enumerate(raw_data) :
-		url = val[1]
+		url = val[4]
 		browser.get(url)
-		if val[6] == '' :
-			browser.get(url)
+		# if val[11] == '' :
+		if x < 15 :
 			try :
-				snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
-				snippet = snippet.get_attribute('innerHTML')
-				# soup = BeautifulSoup(snippet)
-				# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
-				# result = ''.join(str(tag) for tag in trimed_data)
+				browser.switch_to.frame(browser.find_element_by_tag_name("iframe"))
+				job_data = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]')))
+				job_data = job_data.get_attribute('innerHTML')
+				soup = BeautifulSoup(job_data)
+				trimed_data = soup.find_all('div', {'class' : 'iCIMS_InfoMsg iCIMS_InfoMsg_Job'})[1:]
+				# snippet = ''.join(str(tag) for tag in trimed_data)
+				snippet = '<div class="iCIMS_InfoMsg iCIMS_InfoField_Job">Position Summary:</div>' + \
+					str(trimed_data[0]) + '</br><div class="iCIMS_InfoMsg iCIMS_InfoField_Job">Position Qualifications:</div>' + \
+					str(trimed_data[1])
 
 				# # ------------ Test for Multiple locations ---------------
 				# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
@@ -107,34 +111,38 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 			except TimeoutException:
 				print 'Timeout Error!'
 				return
-				
+
+			# print str(x) + '.......' + url
 			if snippet is not None :
-				ws.update_acell('G'+str(x+2), snippet)
-				print 'Line No.' + str(x+2) + '.......' + url
+				ws.update_acell('L'+str(x+1), snippet)
+				print 'Line No.' + str(x+1) + '.......' + url
 			else :
-				print 'Line No.' + str(x+2) + '.......Job not found'
+				print 'Line No.' + str(x+1) + '.......Job not found'
 				
 		else :
-			print 'Line No.' + str(x+2) + '.......Skipped'
+			print 'Line No.' + str(x+1) + '.......Skipped'
 
 
 if __name__ == '__main__':
+	# --------- Test -----------
+	spreadsheet = 'Project_13_0507'
+	worksheet = 'Can not parse'
 
-	url = ''
-	spreadsheet = ''
-	worksheet = ''
-	keyword = '' # Keywords if certain jobs are needed.
+	# url = ''
+	# spreadsheet = ''
+	# worksheet = ''
+	# keyword = '' # Keywords if certain jobs are needed.
 
 	# -------- Parse job search page -----------
-	browser = webdriver.Firefox()
-	parsed_data = parse_job_search_page(browser, url, keyword)
-	update_spreadsheet(parsed_data, spreadsheet, worksheet)
-	browser.quit()
+	# browser = webdriver.Firefox()
+	# parsed_data = parse_job_search_page(browser, url, keyword)
+	# update_spreadsheet(parsed_data, spreadsheet, worksheet)
+	# browser.quit()
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	browser = webdriver.Firefox()
 	parse_job_details(browser, spreadsheet, worksheet)
-	browser.quit()
+	# browser.quit()
 
 
 
