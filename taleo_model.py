@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
@@ -56,17 +57,19 @@ def check_url_status(url) :
 		print 'Unknown error!'
 		return False
 
-def parse_job_search_page(browser, url, keyword) :
-	if not check_url_status(url) :
-		return
-
+def parse_job_search_page(browser, keyword) :
 	result = []
-	browser.get(url) 
 
 	# ------------ Add keyword to search ---------------
 	# key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
+	# key_search.clear()
 	# key_search.send_keys(key)
 	# key_search.send_keys(Keys.ENTER)
+	# sleep(1)
+
+	# ----------- Change number of result per page -------
+	# display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, '')))
+	# Select(display).select_by_value('100')
 	# sleep(1)
 
 
@@ -93,13 +96,11 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 			try :
 				snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
 				snippet = snippet.get_attribute('innerHTML')
+
+				# ------------- Trim for necessary part ----------------
 				# soup = BeautifulSoup(snippet)
 				# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
 				# result = ''.join(str(tag) for tag in trimed_data)
-
-				# # ------------ Test for Multiple locations ---------------
-				# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
-				# result = intel_location(trimed_data.string)
 
 			except StaleElementReferenceException:
 				print 'Selenium Error!'
@@ -119,11 +120,16 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 
 
 if __name__ == '__main__':
+	start_time = time.time()
 
 	url = ''
 	spreadsheet = ''
 	worksheet = ''
 	keyword = '' # Keywords if certain jobs are needed.
+
+	# ------ Search page url check --------
+	if not check_url_status(url) :
+		print 'Error URL!'
 
 	# -------- Parse job search page -----------
 	browser = webdriver.Firefox()
@@ -136,6 +142,8 @@ if __name__ == '__main__':
 	parse_job_details(browser, spreadsheet, worksheet)
 	browser.quit()
 
+
+	print("--- %s seconds ---" % (time.time() - start_time))
 
 
 

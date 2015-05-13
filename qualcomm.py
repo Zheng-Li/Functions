@@ -56,39 +56,51 @@ def check_url_status(url) :
 		print 'Unknown error!'
 		return False
 
-def parse_job_search_page(browser, url, keyword) :
-	if not check_url_status(url) :
-		return
-
-	result = []
-	browser.get(url) 
+def parse_job_search_page(browser, keyword, page) :
 
 	# ------------ Add keyword to search ---------------
 	key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-term"]')))
+	key_search.clear()
 	key_search.send_keys(keyword)
 	key_search.send_keys(Keys.ENTER)
 	sleep(1)
 
-	result = []
+	for x in range(1, page) :
+		WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="c1"]/section/div[2]/div[2]/div[2]/div[5]/div[1]/ul/li[6]/a'))).click()
+
+	urls = []
 	WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="gridResult"]/table/thead')))
 	table = browser.find_element_by_xpath('//*[@id="gridResult"]/table/tbody')
-	rows = table.find_elements_by_tag_name('tr')
-	jobs = [rows[i] for i in (2, 6, 10, 14, 18, 22, 26, 30, 34)]
-	if len(rows) > 39: 
-		jobs += row[38]
-	for job in jobs :
-		title = job.find_element_by_tag_name('a').text
-		url = job.find_element_by_tag_name('a').get_attribute('href')
-		print title
+	job_links = table.find_elements_by_tag_name('a')
+	for link in job_links :
+		url = link.get_attribute('href')
+		if url not in urls :
+			urls.append(url)
+
+	return urls
 
 
-	return ''
+def parse_job_location() :
+	ss = login(spreadsheet)
+	ws = ss.worksheet(worksheet)
+	raw_data = ws.get_all_values()
+	raw_data.pop(0) # Remove header line from spreadsheet
 
+	for x, val in enumerate(raw_data) :
+		location = val[2]
+		city = re.split(' - ', location)[1].strip()
+		state = re.split(' - ', location)[0].strip()
+		if state == get_abbreviation(state) :
+			country = state
+			state = ''
+		else :
+			state = get_abbreviation(state)
+			country = 'USA'
 
-def parse_job_location(location) :
-	loc = re.split('', location)
+		ws.update_acell('C'+str(x+2), city)
+		ws.update_acell('D'+str(x+2), state)
+		ws.update_acell('E'+str(x+2), country)
 
-	return location # <City, Abbreviation, Country>
 
 
 def parse_job_details(browser, spreadsheet, worksheet) :
@@ -103,15 +115,9 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 		if val[6] == '' :
 			browser.get(url)
 			try :
-				snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
-				snippet = snippet.get_attribute('innerHTML')
-				# soup = BeautifulSoup(snippet)
-				# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
-				# result = ''.join(str(tag) for tag in trimed_data)
-
-				# # ------------ Test for Multiple locations ---------------
-				# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
-				# result = intel_location(trimed_data.string)
+				title = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="jobDetailsForm:jobTitle"]'))).text
+				location = browser.find_element_by_xpath('//*[@id="jobDetailsForm"]/table[2]/tbody/tr[1]/td/table/tbody/tr[6]/td[3]').text
+				snippet = browser.find_element_by_xpath('//*[@id="jobDetailsForm"]/table[2]/tbody/tr[1]/td/table').get_attribute('innerHTML')
 
 			except StaleElementReferenceException:
 				print 'Selenium Error!'
@@ -120,8 +126,9 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 				print 'Timeout Error!'
 				return
 				
-			if snippet is not None :
-				ws.update_acell('G'+str(x+2), snippet)
+			if title is not None :
+				ws.update_acell('A'+str(x+2), title)
+				ws.update_acell('C'+str(x+2), location)
 				print 'Line No.' + str(x+2) + '.......' + url
 			else :
 				print 'Line No.' + str(x+2) + '.......Job not found'
@@ -133,23 +140,37 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 if __name__ == '__main__':
 
 	url = 'https://jobs.qualcomm.com/public/search.xhtml'
+	if not check_url_status(url) :
+		print 'Error URL!'
+
 	spreadsheet = 'Test'
 	worksheet = 'Qualcomm'
 	keyword1 = 'Intern' # Keywords if certain jobs are needed.
 	keyword2 = 'Analyst'
 
 	# -------- Parse job search page -----------
-	browser = webdriver.Firefox()
-	parsed_data = []
-	parsed_data += parse_job_search_page(browser, url, keyword1)
-	parsed_data += parse_job_search_page(browser, url, keyword2)
-	update_spreadsheet(parsed_data, spreadsheet, worksheet)
+	# browser = webdriver.Firefox()
+	# browser.get(url) 
+	# parsed_data = []
+	# parsed_data += parse_job_search_page(browser, keyword1, 1)
+	# parsed_data += parse_job_search_page(browser, keyword2, 1)
+	# parsed_data += parse_job_search_page(browser, keyword2, 2)
+	# parsed_data += parse_job_search_page(browser, keyword2, 3)
+	# parsed_data += parse_job_search_page(browser, keyword2, 4)
 	# browser.quit()
 
+	# ss = login(spreadsheet)
+	# ws = ss.worksheet(worksheet)
+	# for i, url in enumerate(parsed_data) :
+	# 	ws.update_acell('B'+str(i+2), url)
+
 	# -------- Parse job detail page (spreadsheet update included)-----------
-	# browser = webdriver.Firefox()
-	# parse_job_details(browser, spreadsheet, worksheet)
-	# browser.quit()
+	browser = webdriver.Firefox()
+	parse_job_details(browser, spreadsheet, worksheet)
+	browser.quit()
+
+	# -------- Parse job locations -----------
+	parse_job_location()
 
 
 
