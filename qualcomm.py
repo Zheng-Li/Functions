@@ -129,6 +129,7 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 			if title is not None :
 				ws.update_acell('A'+str(x+2), title)
 				ws.update_acell('C'+str(x+2), location)
+				ws.update_acell('G'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
 			else :
 				print 'Line No.' + str(x+2) + '.......Job not found'

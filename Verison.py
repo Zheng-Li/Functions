@@ -6,6 +6,7 @@ import httplib
 import random
 import gspread
 import time
+import csv
 from time import sleep
 from Geolocation.geolocation_reference import get_abbreviation
 from selenium import webdriver
@@ -60,6 +61,7 @@ def check_url_status(url) :
 
 def parse_job_search_page(browser, keyword, num_of_pages) :
 	result = []
+	csv_writer = csv.writer(open('Result/Verizon.csv', 'ab'))
 
 	# ------------ Add keyword to search ---------------
 	# key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
@@ -69,28 +71,46 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# sleep(1)
 
 	# ----------- Change number of result per page -------
-	# display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, '')))
-	# Select(display).select_by_value('100')
-	# sleep(1)
+	display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="pg100"]')))
+	display.click()
+	sleep(3)
 
-	# ----------- Change pages of result -------------
-	jobs = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-	for j in job :
-		title = 
-		url = 
-		location = 
-		result.append([title, url] + location + [''])
-		print title + '......' + url + '......Done'
 
+	# ------------ Parse all pages of search result ------------
+	for i in range(0, num_of_pages) :
+		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'next_page')))  
+		if i != 0 :
+			pager.click()
+		sleep(3)
+
+		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="jobresults"]/div[2]/table/tbody')))
+		jobs = table.find_elements_by_tag_name('tr')
+		for job in jobs :
+			title = job.find_elements_by_tag_name('td')[0].find_element_by_tag_name('a').text
+			url = job.find_elements_by_tag_name('a')[0].get_attribute("href")
+			location = parse_job_location(job.find_elements_by_tag_name('td')[2].find_element_by_tag_name('a').text)
+			result.append([title, url] + location + [''])
+			csv_writer.writerow([title, url] + location + [''])
+			print str(i) + '...' + title + '......' + url + '......Done'
+		sleep(3)
+
+	browser.quit()
 	return result
 
 
 def parse_job_location(location) :
 	parsed_loc = []
 
-	loc = re.split('', location)
-
+	loc = re.split(', ', location)
+	city = loc[0]
+	if loc[2] == 'United States' :
+		country = 'USA'
+		abbr = loc[1]
+	else :
+		country = loc[2]
+		abbr = ''
 	parsed_loc = [city, abbr, country]
+
 	return parsed_loc # <City, Abbreviation, Country>
 
 
@@ -134,10 +154,10 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-	url = ''
-	spreadsheet = ''
-	worksheet = ''
-	num_of_pages = 0 # Number of pages in the search result
+	url = 'http://www.verizon.com/about/work/jobs/search?q='
+	spreadsheet = 'Parsing orgs for Zheng May 2015'
+	worksheet = 'Verizon Communications Inc. (Verizon)'
+	num_of_pages = 33 # Number of pages in the search result
 	keyword = '' # Keywords if certain jobs are needed.
 
 	# ------ Search page url check --------
@@ -149,12 +169,11 @@ if __name__ == '__main__':
 	browser.get(url)
 	parsed_data = parse_job_search_page(browser, keyword, num_of_pages)
 	update_spreadsheet(parsed_data, spreadsheet, worksheet)
-	browser.quit()
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
-	browser = webdriver.Firefox()
-	parse_job_details(browser, spreadsheet, worksheet)
-	browser.quit()
+	# browser = webdriver.Firefox()
+	# parse_job_details(browser, spreadsheet, worksheet)
+	# browser.quit()
 
 
 	print("--- %s seconds ---" % (time.time() - start_time))

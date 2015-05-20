@@ -58,29 +58,26 @@ def check_url_status(url) :
 		print 'Unknown error!'
 		return False
 
-def parse_job_search_page(browser, keyword, num_of_pages) :
+def parse_job_search_page(browser, nums_of_page) :
 	result = []
 
-	# ------------ Add keyword to search ---------------
-	# key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-	# key_search.clear()
-	# key_search.send_keys(key)
-	# key_search.send_keys(Keys.ENTER)
-	# sleep(1)
+	# ------------ Parse all pages of search result ------------
+	for i in range(0, nums_of_page) :
+		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search_result_next_page_link"]')))  
+		if i != 0 :
+			pager.click()
+		sleep(1)
 
-	# ----------- Change number of result per page -------
-	# display = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.NAME, '')))
-	# Select(display).select_by_value('100')
-	# sleep(1)
-
-	# ----------- Change pages of result -------------
-	jobs = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-	for j in job :
-		title = 
-		url = 
-		location = 
-		result.append([title, url] + location + [''])
-		print title + '......' + url + '......Done'
+		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="conteinerForSearchResults"]/table/tbody')))
+		jobs = table.find_elements_by_tag_name('tr')
+		jobs.pop(0) # Jobs header
+		jobs.pop(0) # Jobs filter
+		for job in jobs :
+			title = job.find_element_by_tag_name('a').text
+			url = job.find_element_by_tag_name('a').get_attribute("href")
+			location = parse_job_location(job.find_element_by_class_name('td2').text)
+			result.append([title, url] + location + [''])
+			print str(i) + '...' + title + '........Done'
 
 	return result
 
@@ -88,9 +85,12 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 def parse_job_location(location) :
 	parsed_loc = []
 
-	loc = re.split('', location)
-
+	loc = re.split(', ', location)
+	city = loc[0]
+	abbr = get_abbreviation(loc[1])
+	country = 'USA'
 	parsed_loc = [city, abbr, country]
+
 	return parsed_loc # <City, Abbreviation, Country>
 
 
@@ -134,11 +134,11 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-	url = ''
-	spreadsheet = ''
-	worksheet = ''
-	num_of_pages = 0 # Number of pages in the search result
-	keyword = '' # Keywords if certain jobs are needed.
+	url = 'http://jobs.labcorp.com/search/all'
+	spreadsheet = 'Parsing orgs for Zheng May 2015'
+	worksheet = 'LabCorp'
+	num = 45
+	# keyword = '' # Keywords if certain jobs are needed.
 
 	# ------ Search page url check --------
 	if not check_url_status(url) :
@@ -147,20 +147,16 @@ if __name__ == '__main__':
 	# -------- Parse job search page -----------
 	browser = webdriver.Firefox()
 	browser.get(url)
-	parsed_data = parse_job_search_page(browser, keyword, num_of_pages)
+	parsed_data = parse_job_search_page(browser, num)
 	update_spreadsheet(parsed_data, spreadsheet, worksheet)
 	browser.quit()
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
-	browser = webdriver.Firefox()
-	parse_job_details(browser, spreadsheet, worksheet)
-	browser.quit()
+	# browser = webdriver.Firefox()
+	# parse_job_details(browser, spreadsheet, worksheet)
+	# browser.quit()
 
 
 	print("--- %s seconds ---" % (time.time() - start_time))
-
-
-
-
 
 
