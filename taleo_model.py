@@ -73,14 +73,21 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# Select(display).select_by_value('100')
 	# sleep(1)
 
-	# ----------- Change pages of result -------------
-	jobs = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-	for j in job :
-		title = 
-		url = 
-		location = 
-		result.append([title, url] + location + [''])
-		print title + '......' + url + '......Done'
+	# ------------ Parse all pages of search result ------------
+	for i in range(0, num_of_pages) :
+		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
+		if i != 0 :
+			pager.click()
+		sleep(3)
+
+		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
+		jobs = table.
+		for job in jobs :
+			title = 
+			url = 
+			location = 
+			result.append([title, url] + location + [''])
+			print title + '......' + url + '......Done'
 
 	return result
 
