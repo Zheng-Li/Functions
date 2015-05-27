@@ -4,7 +4,9 @@ import urllib2
 import socket
 import httplib
 import random
+import json
 import gspread
+from oauth2client.client import SignedJwtAssertionCredentials
 import time
 from time import sleep
 from Geolocation.geolocation_reference import get_abbreviation
@@ -22,15 +24,19 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-def login(spreadsheet) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open(spreadsheet)
-	return sh
+def login(spreadsheet, worksheet) :
+	json_key = json.load(open('zheng-36483ac6d4a3.json'))
+	scope = ['https://spreadsheets.google.com/feeds']
+
+	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+	gc = gspread.authorize(credentials)
+	ws = gc.open(spreadsheet).worksheet(worksheet)
+
+	return ws
 
 
 def update_spreadsheet(data, spreadsheet, worksheet) :
-	ss = login(spreadsheet)
-	ws = ss.worksheet(worksheet)
+	ws = login(spreadsheet, worksheet)
 
 	for x, row in enumerate(data) :
 		num = x+2 # Skip header row
