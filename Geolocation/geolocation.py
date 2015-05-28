@@ -31,7 +31,6 @@ def send_request_by_record(record):
 	address = record[0] + ',+' + record[1] + ',+' + record[2]
 	address = address.replace(" ", "+")
 	url = URL + address + '&key=' + API_KEY
-	print url
 	response = urllib2.urlopen(url)
 	jsongeocode = response.read()
 	geo = parse_json(jsongeocode)
@@ -74,7 +73,12 @@ def parse_json(code) :
 
 if __name__ == "__main__":
 	# main(sys.argv[1:])
-	print 'Working!'
+	raw_data = read_file('location_fix.csv')
+	fixed_data = []
+	for row in raw_data :
+		fixed_data.append(send_request_by_location(row[0], row[2], row[3]))
+	write_file('location_fixed.csv', fixed_data)
+
 
 
 

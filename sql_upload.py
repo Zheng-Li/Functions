@@ -49,7 +49,10 @@ def update_job(company, raw_data) :
 
 
 if __name__ == '__main__':
-	print 'Working!'
+	f = csv.reader(open('location_fixed.csv', 'rU'))
+	for row in f : 
+		rec = [row[0], row[1], row[2], row[3], row[4], row[5]]
+		update_location(rec)
 
 # ++++++++++++++++++++++++++++++
 # Job Index (Title, Url, Org_id, Loc_id)

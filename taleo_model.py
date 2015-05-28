@@ -35,17 +35,14 @@ def login(spreadsheet, worksheet) :
 	return ws
 
 
-def update_spreadsheet(data, spreadsheet, worksheet) :
-	ws = login(spreadsheet, worksheet)
-
+def update_spreadsheet(data, page, worksheet) :
 	for x, row in enumerate(data) :
-		num = x+2 # Skip header row
-		cell_list = ws.range('A'+str(num)+':F'+str(num))
+		num = x+2+page*100 # Skip header row
+		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
 		for i, val in enumerate(row) :
 			cell_list[i].value = val
-		print 'Row No.' + str(x) + '....' + str(cell_list[0].value)
-		ws.update_cells(cell_list)
-
+		print 'Row No.' + str(num) + '....' + str(cell_list[0].value)
+		worksheet.update_cells(cell_list)
 
 def check_url_status(url) :
 	try :
@@ -148,8 +145,8 @@ if __name__ == '__main__':
 	start_time = time.time()
 
 	url = ''
-	spreadsheet = ''
-	worksheet = ''
+	spreadsheet_name = ''
+	worksheet_name = ''
 	num_of_pages = 0 # Number of pages in the search result
 	keyword = '' # Keywords if certain jobs are needed.
 
@@ -161,8 +158,10 @@ if __name__ == '__main__':
 	browser = webdriver.Firefox()
 	browser.get(url)
 	parsed_data = parse_job_search_page(browser, keyword, num_of_pages)
-	update_spreadsheet(parsed_data, spreadsheet, worksheet)
 	browser.quit()
+	ws = login(spreadsheet_name, worksheet_name)
+	update_spreadsheet(parsed_data, 0, ws)
+	
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	browser = webdriver.Firefox()
