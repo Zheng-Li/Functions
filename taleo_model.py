@@ -3,7 +3,7 @@ import re
 import urllib2
 import socket
 import httplib
-import random
+import csv
 import json
 import gspread
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -104,15 +104,12 @@ def parse_job_location(location) :
 	return parsed_loc # <City, Abbreviation, Country>
 
 
-def parse_job_details(browser, spreadsheet, worksheet) :
-	ss = login(spreadsheet)
-	ws = ss.worksheet(worksheet)
-	raw_data = ws.get_all_values()
+def parse_job_details(browser, worksheet) :
+	raw_data = worksheet.get_all_values()
 	raw_data.pop(0) # Remove header line from spreadsheet
 
 	for x, val in enumerate(raw_data) :
 		url = val[1]
-		browser.get(url)
 		if val[6] == '' :
 			browser.get(url)
 			try :
@@ -132,7 +129,7 @@ def parse_job_details(browser, spreadsheet, worksheet) :
 				return
 				
 			if snippet is not None :
-				ws.update_acell('G'+str(x+2), snippet)
+				worksheet.update_acell('G'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
 			else :
 				print 'Line No.' + str(x+2) + '.......Job not found'
@@ -149,6 +146,7 @@ if __name__ == '__main__':
 	worksheet_name = ''
 	num_of_pages = 0 # Number of pages in the search result
 	keyword = '' # Keywords if certain jobs are needed.
+	
 
 	# ------ Search page url check --------
 	if not check_url_status(url) :
@@ -159,13 +157,15 @@ if __name__ == '__main__':
 	browser.get(url)
 	parsed_data = parse_job_search_page(browser, keyword, num_of_pages)
 	browser.quit()
+
+	# -------- Upload result to spreadsheet
 	ws = login(spreadsheet_name, worksheet_name)
 	update_spreadsheet(parsed_data, 0, ws)
 	
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	browser = webdriver.Firefox()
-	parse_job_details(browser, spreadsheet, worksheet)
+	parse_job_details(browser, ws)
 	browser.quit()
 
 
