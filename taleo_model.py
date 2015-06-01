@@ -97,6 +97,9 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 
 def parse_job_location(location) :
 	parsed_loc = []
+	city = ''
+	abbr = ''
+	country = ''
 
 	loc = re.split('', location)
 
@@ -144,6 +147,7 @@ if __name__ == '__main__':
 	url = ''
 	spreadsheet_name = ''
 	worksheet_name = ''
+	local_sheet_name = ''
 	num_of_pages = 0 # Number of pages in the search result
 	keyword = '' # Keywords if certain jobs are needed.
 	
@@ -158,10 +162,14 @@ if __name__ == '__main__':
 	parsed_data = parse_job_search_page(browser, keyword, num_of_pages)
 	browser.quit()
 
+	# -------- Download to local csv file --------
+	writer = csv.writer(open('Result/'+local_sheet_name, 'w'))
+	for item in parsed_data :
+		writer.writerow(item)
+
 	# -------- Upload result to spreadsheet
 	ws = login(spreadsheet_name, worksheet_name)
 	update_spreadsheet(parsed_data, 0, ws)
-	
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	browser = webdriver.Firefox()
