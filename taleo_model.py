@@ -77,6 +77,15 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# sleep(1)
 
 	# ------------ Parse all pages of search result ------------
+	# button_moreJobs = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH,'')))
+	# while len(browser.find_elements_by_xpath('')) > 0 :
+	# 	button_moreJobs = browser.find_element_by_xpath('')
+	# 	button_moreJobs.click()
+	# 	button_moreJobs = None
+	# 	sleep(1.7)
+	# sleep(5)
+
+	# ------------ Parse all pages of search result ------------
 	for i in range(0, num_of_pages) :
 		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
 		if i != 0 :
@@ -104,6 +113,7 @@ def parse_job_location(location) :
 	loc = re.split('', location)
 
 	parsed_loc = [city, abbr, country]
+	print parsed_loc
 	return parsed_loc # <City, Abbreviation, Country>
 
 
