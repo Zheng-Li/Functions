@@ -8,7 +8,6 @@ Thumbs.db
 
 # Source code and database #
 ############################
-/Result/*
 /Backup/*
 *.sql
 *.pyc
