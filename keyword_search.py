@@ -20,10 +20,15 @@ sys.setdefaultencoding("utf-8")
 WARNING_SIGN = ['illegal', 'apologize', 'sorry','no longer available', 'not found', 'inconvenience', 'no longer posted', 'no longer accepting', 'no vacancy', 'vacancy closed']
 URL_SIGN = ['jobvite','icims','taleo', 'jobs.brassring.com']
 
-def login(sheet_name) :
-	gs = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gs.open(sheet_name)
-	return  sh
+def login(spreadsheet, worksheet) :
+	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+	scope = ['https://spreadsheets.google.com/feeds']
+
+	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+	gc = gspread.authorize(credentials)
+	ws = gc.open(spreadsheet).worksheet(worksheet)
+
+	return ws
 
 def csv_input(csv_file) :
 	data_list = []

@@ -60,7 +60,7 @@ keyword_list = re.split('\n', keywords)
 
 
 def check_if_exists (title) :
-	if any (keyword in title for keyword in keyword_list) :
+	if any (keyword.lower() in title.lower() for keyword in keyword_list) :
 		return True
 	else :
 		return False
