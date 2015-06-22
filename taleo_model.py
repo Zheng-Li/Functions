@@ -6,9 +6,9 @@ import httplib
 import csv
 import json
 import gspread
-from oauth2client.client import SignedJwtAssertionCredentials
 import time
 from time import sleep
+from oauth2client.client import SignedJwtAssertionCredentials
 from Geolocation.geolocation_reference import get_abbreviation
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,6 +19,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
+from keyword_remove import check_if_exists
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -95,11 +96,14 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
 		jobs = table.find_elements_by_tag_name('tr')
 		for job in jobs :
-			title = 
-			url = 
-			location = 
-			result.append([title, url] + location + [''])
+			title = job.find_element_by_tag_name('a').text
+			url = job.find_element_by_tag_name('a').get_attribute('href')
 			print title + '......' + url + '......Done'
+			location = parse_job_location()
+			if not check_if_exists :
+				result.append([title, url] + location)
+			else :
+				result.append([title, url, '', '', '', 'Experienced'])
 
 	return result
 
