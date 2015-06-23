@@ -19,7 +19,6 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
-from keyword_remove import check_if_exists
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -73,28 +72,70 @@ def parse_job_details(browser, worksheet) :
 		else :
 			print 'Line No.' + str(x+2) + '.......Skipped'
 
+def load_remove_keywords () :
+	spreadsheet_name = 'Test Project'
+	worksheet_name = 'Keywords_Jobs to Remove'
+	ws = login(spreadsheet_name, worksheet_name)
+
+	keyword_dict = ws.col_values(1)
+
+	return keyword_dict
+
+def check_if_exists (title, keyword_dict) :
+	if any (keyword.lower() in title.lower() for keyword in keyword_dict) :
+		return True
+	else :
+		return False
+
+def load_tag_keywords () :
+	spreadsheet_name = 'Test Project'
+	worksheet_name = 'Keywords Page 1 Job Tags June 6'
+	ws = login(spreadsheet_name, worksheet_name)
+
+	raw_data = ws.get_all_values()
+	for row in raw_data :
+		key = row.pop(0).lower()
+		values = filter(None, row)
+		keyword_dict[key] = [x.lower() for x in values]
+
+	return  keyword_dict
+
+def add_tags (title, keyword_dict) :
+	tag_list = []
+	for ky in keyword_dict.keys() :
+		if ky.lower() in title.lower() :
+			tag_list.append(ky)
+			tag_list += keyword_dict[ky]
+
+	tags = list(set(tag_list))
+	return tags
 
 if __name__ == '__main__':
 	start_time = time.time()
 
-	spreadsheet_name_1 = 'Organization Parsing New Companies from Carol_May2015'
-	worksheet_name_1 = 'Honeywell International'
-	ws_1 = login(spreadsheet_name_1, worksheet_name_1)
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
+	worksheet_name = 'Honeywell International'
+	ws = login(spreadsheet_name, worksheet_name)
+
+
+	# ---------- Remove jobs -----------
+	raw_data = ws.get_all_values()
+	del raw_data[0]
+	for i, row in enumerate(raw_data) :
+		title = row[2].strip()
+		keyword_dict = load_remove_keywords()
+		if check_if_exists(title, keyword_dict) :
+			ws.update_acell('J' + str(i+2), 'Experienced')
+			print 'Row...' + str(i+2) + '...Experienced'
+
+	# ---------- Tag jobs -----------
+
+
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	# browser = webdriver.Firefox()
 	# parse_job_details(browser, ws)
 	# browser.quit()
-
-
-	raw_data = ws_1.get_all_values()
-	del raw_data[0]
-	for i, row in enumerate(raw_data) :
-		title = row[2].strip()
-		if check_if_exists(title) :
-			ws_1.update_acell('J' + str(num), 'Experienced')
-			print 'Row...' + str(num) + '...Experienced'
-		else :
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 

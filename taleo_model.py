@@ -19,14 +19,13 @@ from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
-from keyword_remove import check_if_exists
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
 def login(spreadsheet, worksheet) :
-	json_key = json.load(open('zheng-36483ac6d4a3.json'))
+	json_key = json.load(open('zheng-6cef143e8ce1.json'))
 	scope = ['https://spreadsheets.google.com/feeds']
 
 	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
@@ -34,16 +33,6 @@ def login(spreadsheet, worksheet) :
 	ws = gc.open(spreadsheet).worksheet(worksheet)
 
 	return ws
-
-
-def update_spreadsheet(data, page, worksheet) :
-	for x, row in enumerate(data) :
-		num = x+2+page*100 # Skip header row
-		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
-		for i, val in enumerate(row) :
-			cell_list[i].value = val
-		print 'Row No.' + str(num) + '....' + str(cell_list[0].value)
-		worksheet.update_cells(cell_list)
 
 def check_url_status(url) :
 	try :
@@ -62,8 +51,62 @@ def check_url_status(url) :
 		print 'Unknown error!'
 		return False
 
+def load_remove_keywords () :
+	spreadsheet_name = 'Test Project'
+	worksheet_name = 'Keywords_Jobs to Remove'
+	ws = login(spreadsheet_name, worksheet_name)
+
+	keyword_dict = ws.col_values(1)
+	del keyword_dict[0]
+
+	return keyword_dict
+
+def check_if_exists (title, keyword_dict) :
+	if any (keyword.lower() in title.lower() for keyword in keyword_dict) :
+		return True
+	else :
+		return False
+
+def load_tag_keywords () :
+	spreadsheet_name = 'Test Project'
+
+	worksheet_name_1 = 'Keywords Page 1 Job Tags June 6'
+	ws_1 = login(spreadsheet_name, worksheet_name_1)
+	keyword_dict_1 = {}
+
+	raw_data_1 = ws_1.get_all_values()
+	for row in raw_data_1 :
+		key = row.pop(0).lower()
+		values = filter(None, row)
+		keyword_dict_1[key] = [x.lower() for x in values]
+
+	worksheet_name_2 = 'Keywords Page 2 Job Tags June 6'
+	ws_2 = login(spreadsheet_name, worksheet_name_2)
+	keyword_dict_2 = {}
+
+	raw_data_2 = ws_2.get_all_values()
+	for row in raw_data_2 :
+		key = row.pop(0).lower()
+		values = filter(None, row)
+		keyword_dict_2[key] = [x.lower() for x in values]
+
+	return  keyword_dict_1, keyword_dict_2
+
+def tag_job (title, keyword_dict) :
+	tag_list = []
+	for ky in keyword_dict.keys() :
+		if ky.lower() in title.lower() :
+			tag_list.append(ky)
+			tag_list += keyword_dict[ky]
+
+	tags = ','.join(list(set(tag_list)))
+	return tags
+
 def parse_job_search_page(browser, keyword, num_of_pages) :
 	result = []
+
+	remove_keyword_dict = load_remove_keywords()
+	tag_keyword_dict_1, tag_keyword_dict_2 = load_tag_keywords()
 
 	# ------------ Add keyword to search ---------------
 	# key_search = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
@@ -100,10 +143,13 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 			url = job.find_element_by_tag_name('a').get_attribute('href')
 			print title + '......' + url + '......Done'
 			location = parse_job_location()
-			if not check_if_exists :
-				result.append([title, url] + location)
+			if check_if_exists(title, remove_keyword_dict) :
+				tags = 'Experienced'
 			else :
-				result.append([title, url, '', '', '', 'Experienced'])
+				tags = tag_job(title, tag_keyword_dict_1)
+				if tags != '' :
+					tags += tag_job(title, tag_keyword_dict_2)
+			result.append([title, url] + location + ['', '', tags])
 
 	return result
 
@@ -115,6 +161,17 @@ def parse_job_location(location) :
 	country = ''
 
 	loc = re.split('', location)
+
+	if 'US' in country :
+		country = 'USA'
+	elif 'United States' in country :
+		country = 'USA'
+	elif 'United Kingdom' in country :
+		country = 'UK'
+	elif 'United Arab Emirates' in country :
+		country = 'UAE'
+	elif 'Great Britain' :
+		country = 'UK'
 
 	parsed_loc = [city, abbr, country]
 	print parsed_loc
