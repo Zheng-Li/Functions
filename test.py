@@ -128,10 +128,6 @@ if __name__ == '__main__':
 			ws.update_acell('J' + str(i+2), 'Experienced')
 			print 'Row...' + str(i+2) + '...Experienced'
 
-	# ---------- Tag jobs -----------
-
-
-
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	# browser = webdriver.Firefox()
 	# parse_job_details(browser, ws)

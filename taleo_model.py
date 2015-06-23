@@ -149,7 +149,7 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 				tags = tag_job(title, tag_keyword_dict_1)
 				if tags != '' :
 					tags += tag_job(title, tag_keyword_dict_2)
-			result.append([title, url] + location + ['', '', tags])
+			result.append([title, url] + location + ['', tags])
 
 	return result
 
