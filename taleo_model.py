@@ -170,7 +170,7 @@ def parse_job_location(location) :
 		country = 'UK'
 	elif 'United Arab Emirates' in country :
 		country = 'UAE'
-	elif 'Great Britain' :
+	elif 'Great Britain' in country :
 		country = 'UK'
 
 	parsed_loc = [city, abbr, country]
