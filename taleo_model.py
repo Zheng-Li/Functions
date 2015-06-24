@@ -76,7 +76,7 @@ def load_tag_keywords () :
 
 	raw_data_1 = ws_1.get_all_values()
 	for row in raw_data_1 :
-		key = row.pop(0).lower()
+		key = row.pop(0).lower().strip()
 		values = filter(None, row)
 		keyword_dict_1[key] = [x.lower() for x in values]
 
@@ -86,7 +86,7 @@ def load_tag_keywords () :
 
 	raw_data_2 = ws_2.get_all_values()
 	for row in raw_data_2 :
-		key = row.pop(0).lower()
+		key = row.pop(0).lower().strip()
 		values = filter(None, row)
 		keyword_dict_2[key] = [x.lower() for x in values]
 
@@ -94,12 +94,16 @@ def load_tag_keywords () :
 
 def tag_job (title, keyword_dict) :
 	tag_list = []
+	title = re.escape(title.strip().lower())
 	for ky in keyword_dict.keys() :
-		if ky.lower() in title.lower() :
+		ky = re.escape(ky)
+		reg = '\\b' + ky + '\\b'
+		result = re.search(reg, title)  
+		if result is not None :
 			tag_list.append(ky)
 			tag_list += keyword_dict[ky]
 
-	tags = ','.join(list(set(tag_list)))
+	tags = list(set(tag_list))
 	return tags
 
 def parse_job_search_page(browser, keyword, num_of_pages) :
@@ -128,30 +132,33 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# 	button_moreJobs = None
 	# 	sleep(1.7)
 	# sleep(5)
+	
+	try : 
+		# ------------ Parse all pages of search result ------------
+		for i in range(0, num_of_pages) :
+			pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
+			if i != 0 :
+				pager.click()
+			sleep(3)
 
-	# ------------ Parse all pages of search result ------------
-	for i in range(0, num_of_pages) :
-		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
-		if i != 0 :
-			pager.click()
-		sleep(3)
+			table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
+			jobs = table.find_elements_by_tag_name('tr')
+			for job in jobs :
+				title = job.find_element_by_tag_name('a').text
+				url = job.find_element_by_tag_name('a').get_attribute('href')
+				print title + '......' + url + '......Done'
+				location = parse_job_location()
+				if check_if_exists(title, remove_keyword_dict) :
+					tags_list = 'Experienced'
+				else :
+					tags = tag_job(title, tag_keyword_dict_1)
+					if tags != '' :
+						tags += tag_job(title, tag_keyword_dict_2)
+						tags_list = ','.join(list(set(tags)))
+				result.append([title, url] + location + ['', tags_list])
 
-		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-		jobs = table.find_elements_by_tag_name('tr')
-		for job in jobs :
-			title = job.find_element_by_tag_name('a').text
-			url = job.find_element_by_tag_name('a').get_attribute('href')
-			print title + '......' + url + '......Done'
-			location = parse_job_location()
-			if check_if_exists(title, remove_keyword_dict) :
-				tags = 'Experienced'
-			else :
-				tags = tag_job(title, tag_keyword_dict_1)
-				if tags != '' :
-					tags += tag_job(title, tag_keyword_dict_2)
-			result.append([title, url] + location + ['', tags])
-
-	return result
+	except :
+		return result
 
 
 def parse_job_location(location) :

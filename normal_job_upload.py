@@ -3,15 +3,27 @@ import requests
 import gspread
 import time
 import urllib2
+import json
 import re
-# import MySQLdb
+import MySQLdb
 # from bs4 import BeautifulSoup
+from oauth2client.client import SignedJwtAssertionCredentials
 from Geolocation.geolocation import send_request_by_location
 from sql_upload import upload_location
 from keyword_search import keyword_search
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+
+def login(spreadsheet, worksheet) :
+	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+	scope = ['https://spreadsheets.google.com/feeds']
+
+	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+	gc = gspread.authorize(credentials)
+	ws = gc.open(spreadsheet).worksheet(worksheet)
+
+	return ws
 
 def url_check(url) :
 	try:
@@ -117,12 +129,8 @@ def normal_sql_upload(spreadsheet_name, worksheet_name) :
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
 		f.write(job_sql + '\n')
 
-def taleo_sql_upload(spreadsheet_name, worksheet_name, company) :
+def taleo_sql_upload(worksheet, company) :
 	f = open('Result/'+ company + '.sql', 'a')
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open(spreadsheet_name)
-
-	worksheet = job_sh.worksheet(worksheet_name)
 	data = worksheet.get_all_values()
 	data.pop(0)
 	for row in data :
@@ -133,10 +141,9 @@ def taleo_sql_upload(spreadsheet_name, worksheet_name, company) :
 		row[4] = MySQLdb.escape_string(row[4].strip())
 		row[5] = MySQLdb.escape_string(row[5].strip())
 		row[6] = MySQLdb.escape_string(row[6].strip())
-		row[7] = MySQLdb.escape_string(row[7].strip())
-		if row[7] == 'Job Not Found' :
+		if row[6] == 'Experienced' or row[6] == '':
 			continue
-		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), org1.ID, loc1.ID, \'{0[7]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[6]}\', tags = \'{0[7]}\';'''.format(row, company)
+		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), org1.ID, loc1.ID, \'{0[6]}\', \'{0[5]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[5]}\', tags = \'{0[6]}\';'''.format(row, company)
 		f.write(job_sql + '\n')
 	f.close()
 
@@ -232,8 +239,8 @@ def sql_parse(spreadsheet_name, worksheet_name, company, taleo) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	job_sh = gc.open('Test')
+	# gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
+	# job_sh = gc.open('Test')
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
@@ -251,5 +258,10 @@ if __name__ == '__main__':
 	# -------------- Step 5: SQL parse -------------------
 	# sql_parse('Test', 'BASF Corporation', 'BASF Corporation' ,True)
 	# sql_parse(job_sh, '', False)
+
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
+	worksheet_name = 'Test'
+	worksheet = login(spreadsheet_name, worksheet_name)
+	taleo_sql_upload(worksheet, 'Honeywell International Inc.')
 
 	print("--- %s seconds ---" % (time.time() - start_time))

@@ -7,9 +7,11 @@ import HTMLParser
 import random
 import gspread
 import csv
+import json
 import time
 # from Geolocation.geolocation import *
 # from sql_upload import upload_location
+from oauth2client.client import SignedJwtAssertionCredentials
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,10 +24,15 @@ import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-def login(spreadsheet) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open(spreadsheet)
-	return sh
+def login(spreadsheet, worksheet) :
+	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+	scope = ['https://spreadsheets.google.com/feeds']
+
+	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+	gc = gspread.authorize(credentials)
+	ws = gc.open(spreadsheet).worksheet(worksheet)
+
+	return ws
 
 # ----------- Regular site table parse -----------------
 def url_parse(url) :
@@ -80,28 +87,13 @@ def table_parse(page) :
 		data.append([tmp[0], tmp[1]] + location_parse(tmp[4]) + [country, tmp[2]])
 	return data
 
-def location_parse(raw) :
-	loc = re.split('-', raw) 
-	l = []
-	if len(loc) == 1 :
-		l = [loc[0], '']
-	else :
-		l = [loc[1], loc[0]]	
-	return l
-
-
-
-
 def csv_output(data_list, csv_file) :
 	csv_writer = csv.writer(open(csv_file, 'ab'))
 	for row in data_list :
 		csv_writer.writerow(row)
 
 # ------------- Taleo sheet update --------------
-def update_spreadsheet(data, sheet_name, loc) :
-	sheet = login('Test')
-	worksheet = sheet.worksheet(sheet_name)
-
+def update_spreadsheet(data, worksheet, loc) :
 	for x, row in enumerate(data) :
 		num = x + 2 + 25*(loc-1)
 		cell_list = worksheet.range('A'+str(num)+':F'+str(num))
@@ -140,16 +132,15 @@ def update_spreadsheet(data, sheet_name, loc) :
 
 # ----------- Taleo detail page --------------
 def parse_job_detail(browser, url) :
-
 	browser.get(url)
 	try :
-		job_data = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.CLASS_NAME, 'editablesection')))
+		job_data = WebDriverWait(browser, 3).until(EC.presence_of_element_located((By.XPATH, '//*[@id="dnn_ctr1211_ViewJobDetail_lblJobDesc"]')))
 		job_data = job_data.get_attribute('innerHTML')
-		soup = BeautifulSoup(job_data)
-		trimed_data =  soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
-		result = ''.join(str(tag) for tag in trimed_data)
+		# soup = BeautifulSoup(job_data)
+		# trimed_data =  soup.find_all('div', {'class' : 'contentlinepanel'})[:3]
+		# result = ''.join(str(tag) for tag in trimed_data)
 
-		# result = job_data
+		result = job_data
 
 		# # ------------ Test for Multiple locations ---------------
 		# trimed_data = soup.find('span', {'id' : 'requisitionDescriptionInterface.ID1790.row1'})
@@ -160,39 +151,6 @@ def parse_job_detail(browser, url) :
 		return
 	except TimeoutException:
 		return
-
-
-def intel_location(location) :
-	if location == 'Multiple Locations' :
-		return ['','','']
-	elif location == 'Israel--':
-		return ['','','Israel']
-	else :
-		loc = re.split('-|, ', location)
-		if loc[0] == 'United Arab Emirates' :
-			country = 'UAE'
-		elif loc[0] == 'Russian Federation' :
-			country = 'Russia'
-		elif loc[0] == 'United Kingdom' :
-			country = 'UK'
-		elif loc[0] == 'Viet Nam' :
-			country = 'Vietnam'
-		else :
-			country = loc[0]
-
-		if len(loc) < 2 or 'USA' not in location:
-			state = ''
-		else : 
-			state = get_abbrevation(loc[1])
-			if state is None :
-				state = ''
-		if len(loc) < 3 :
-			city = ''
-		else :
-			city = loc[2]
-		return [city, state, country]
-
-
 
 # ----------- Taleo location sheet --------------
 def update_location_from_sheet(spreadsheet, start, end) :
@@ -253,23 +211,28 @@ if __name__ == '__main__':
 	# update_spreadsheet(result, 'Bayer AG', 1)
 
 	# ------------- Taleo Job Details ---------------
-	job_sh = login('Test')
-	sh = job_sh.worksheet('Fidelity_Intern')
-	raw_data = sh.get_all_values()
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
+	worksheet_name = 'Test'
+	ws = login(spreadsheet_name, worksheet_name)
+	raw_data = ws.get_all_values()
 	raw_data.pop(0)
+
+	result = []
 
 	browser = webdriver.Firefox()
 	for x, val in enumerate(raw_data) :
 		url = val[1]
-		if val[6] == '' :
+		if val[5] == '' :
 			snippet = parse_job_detail(browser, url)
-			# print str(x) + '.......' + url
 			if snippet is not None :
-				sh.update_acell('G'+str(x+2), snippet)
+				result.append([snippet])
+				# ws.update_acell('F'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
 			else :
+				result.append([''])
 				print 'Line No.' + str(x+2) + '.......Job not found'
 	browser.quit() 
+	csv_output(result, 'Result/snippet.csv')
 
 	# ------------------ Test for Multilocation -----------------
 	# job_sh = login('Test')

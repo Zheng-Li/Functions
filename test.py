@@ -82,19 +82,36 @@ def load_remove_keywords () :
 	return keyword_dict
 
 def check_if_exists (title, keyword_dict) :
-	if any (keyword.lower() in title.lower() for keyword in keyword_dict) :
+	if any (keyword.strip().lower() in title.lower() for keyword in keyword_dict) :
 		return True
 	else :
 		return False
 
-def load_tag_keywords () :
+def load_tag_keywords_1 () :
 	spreadsheet_name = 'Test Project'
 	worksheet_name = 'Keywords Page 1 Job Tags June 6'
 	ws = login(spreadsheet_name, worksheet_name)
 
+	keyword_dict = {}
+
 	raw_data = ws.get_all_values()
 	for row in raw_data :
-		key = row.pop(0).lower()
+		key = row.pop(0).strip().lower()
+		values = filter(None, row)
+		keyword_dict[key] = [x.lower() for x in values]
+
+	return  keyword_dict
+
+def load_tag_keywords_2 () :
+	spreadsheet_name = 'Test Project'
+	worksheet_name = 'Keywords Page 2 Job Tags June 6'
+	ws = login(spreadsheet_name, worksheet_name)
+
+	keyword_dict = {}
+
+	raw_data = ws.get_all_values()
+	for row in raw_data :
+		key = row.pop(0).strip().lower()
 		values = filter(None, row)
 		keyword_dict[key] = [x.lower() for x in values]
 
@@ -103,7 +120,7 @@ def load_tag_keywords () :
 def add_tags (title, keyword_dict) :
 	tag_list = []
 	for ky in keyword_dict.keys() :
-		if ky.lower() in title.lower() :
+		if ky.strip().lower() in title.lower() :
 			tag_list.append(ky)
 			tag_list += keyword_dict[ky]
 
@@ -114,19 +131,26 @@ if __name__ == '__main__':
 	start_time = time.time()
 
 	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
-	worksheet_name = 'Honeywell International'
+	worksheet_name = 'Test'
 	ws = login(spreadsheet_name, worksheet_name)
 
 
 	# ---------- Remove jobs -----------
 	raw_data = ws.get_all_values()
 	del raw_data[0]
+	remove_keyword_dict = load_remove_keywords()
+	keyword_dict_1 = load_tag_keywords_1()
+	keyword_dict_2 = load_tag_keywords_2()
 	for i, row in enumerate(raw_data) :
-		title = row[2].strip()
-		keyword_dict = load_remove_keywords()
-		if check_if_exists(title, keyword_dict) :
-			ws.update_acell('J' + str(i+2), 'Experienced')
-			print 'Row...' + str(i+2) + '...Experienced'
+		title = row[0].strip()
+		if not check_if_exists(title, remove_keyword_dict) :
+			tags = add_tags(title, keyword_dict_1) + add_tags(title, keyword_dict_2)
+			tags_list = list(set(tags))
+			print title + '...' + ','.join(tags_list)
+			ws.update_acell('H' + str(i+2), ','.join(tags_list))
+		# else :
+		# 	ws.update_acell('J' + str(i+2), 'Experienced')
+		# 	print 'Row...' + str(i+2) + '...Experienced'
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	# browser = webdriver.Firefox()

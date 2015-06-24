@@ -1,16 +1,43 @@
 import re
 import gspread
 import MySQLdb
+from Geolocation.geolocation import *
+from oauth2client.client import SignedJwtAssertionCredentials
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-def update_spreadsheet(sheet_name, location_list) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open(sheet_name)
-	# worksheet = sh.add_worksheet(title="Location", rows="200", cols="10")
-	worksheet = sh.worksheet('Locations')
+def login(spreadsheet, worksheet) :
+	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+	scope = ['https://spreadsheets.google.com/feeds']
 
+	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+	gc = gspread.authorize(credentials)
+	ws = gc.open(spreadsheet).worksheet(worksheet)
+
+	return ws
+
+
+def download_location_list(worksheet) :
+	data_list = worksheet.get_all_values()
+	del data_list[0]
+
+	location_list = []
+	for row in data_list :
+		loc = [row[2].strip(), row[3].strip(), row[4].strip()]
+		location_list.append(loc)
+	location_set = set(map(tuple,location_list))  #need to convert the inner lists to tuples so they are hashable
+	locations = map(list,location_set) #Now convert tuples back into lists (maybe unnecessary?)
+
+	result = []
+	for item in locations :
+		tmp = send_request_by_location(item[0], item[1], item[2])
+		result.append(tmp)
+		print tmp
+	return result
+
+
+def update_spreadsheet(worksheet, location_list) :
 	# Header
 	cell_list = worksheet.range('A1:F1')
 	cell_values = ['City', 'State', 'Abbrevation', 'Country', 'Latitude', 'Longitude']
@@ -26,11 +53,7 @@ def update_spreadsheet(sheet_name, location_list) :
 			cell_list[i].value = val
 		worksheet.update_cells(cell_list)
 
-def upload_location(sheet_name) :
-	gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	sh = gc.open(sheet_name)
-	worksheet = sh.worksheet('Locations')
-
+def upload_location(worksheet) :
 	# <City, State, Abbreviation, Country, Latitude, Longitude>
 	data_list = worksheet.get_all_values()
 	data_list.pop(0) # Remove header row
@@ -45,7 +68,18 @@ def upload_location(sheet_name) :
 		f.write(sql + '\n')
 
 if __name__ == '__main__':
-	upload_location('Test')
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
+
+
+	location_worksheet_name = 'Test'
+	loc_worksheet = login(spreadsheet_name, location_worksheet_name)
+	location_list = download_location_list(loc_worksheet)
+
+	result_worksheet_name = 'Test_location'
+	result_worksheet = login(spreadsheet_name, result_worksheet_name)
+	update_spreadsheet(result_worksheet, location_list)
+
+	upload_location(result_worksheet)
 
 
 
