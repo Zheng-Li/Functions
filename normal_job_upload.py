@@ -238,9 +238,8 @@ def sql_parse(spreadsheet_name, worksheet_name, company, taleo) :
 
 if __name__ == '__main__':
 	start_time = time.time()
-
-	# gc = gspread.login('zheng@zoomdojo.com', 'marymount05')
-	# job_sh = gc.open('Test')
+	spreadsheet_name = ''
+	worksheet_name = ''
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
@@ -258,9 +257,7 @@ if __name__ == '__main__':
 	# -------------- Step 5: SQL parse -------------------
 	# sql_parse('Test', 'BASF Corporation', 'BASF Corporation' ,True)
 	# sql_parse(job_sh, '', False)
-
-	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
-	worksheet_name = 'Test'
+	
 	worksheet = login(spreadsheet_name, worksheet_name)
 	taleo_sql_upload(worksheet, 'Honeywell International Inc.')
 

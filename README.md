@@ -2,6 +2,8 @@
 
 Geolocation --- Java/Python/PHP
 
-Parser --- Python
+Crawler Model --- Python
 
-Selenium
+Parser Model --- Python
+
+Unit Test / Scripts --- Selenium

@@ -97,7 +97,7 @@ def tag_job (title, keyword_dict) :
 	title = re.escape(title.strip().lower())
 	for ky in keyword_dict.keys() :
 		ky = re.escape(ky)
-		reg = '\\b' + ky + '\\b'
+		reg = '\\b' + ky + '[,.]?\\b'
 		result = re.search(reg, title)  
 		if result is not None :
 			tag_list.append(ky)
