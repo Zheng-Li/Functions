@@ -9,6 +9,14 @@ import MySQLdb
 # from bs4 import BeautifulSoup
 from oauth2client.client import SignedJwtAssertionCredentials
 from Geolocation.geolocation import send_request_by_location
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
 from sql_upload import upload_location
 from keyword_search import keyword_search
 import sys
@@ -129,22 +137,63 @@ def normal_sql_upload(spreadsheet_name, worksheet_name) :
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Expired_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[1]}\', \'{0[2]}\', 200, CURDATE(), \'{0[6]}\', org1.ID, loc1.ID, \'{0[9]}\', \'{0[8]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{0[0]}\' AND loc1.City = \'{0[3]}\' AND loc1.Abbreviation = \'{0[4]}\' AND loc1.Country = \'{0[5]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[8]}\';'''.format(row)
 		f.write(job_sql + '\n')
 
+def parse_job_details(browser, url) :
+	browser.get(url)
+	try :
+		if 'brassring' in url :
+			snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ctl00_ProgressBar"]/table/tbody/tr[2]/td/table[4]')))
+			snippet = '<table width="92%" border="0" cellpadding="3" cellspacing="0" align="center" role="presentation">' + \
+						snippet.get_attribute('innerHTML') + \
+						'</table>'
+		elif 'appone' in url :
+			snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="JobDescription"]')))
+			snippet = '<table width="100%" cellpadding="3" id="JobDescription">' + \
+						snippet.get_attribute('innerHTML') + \
+						'</table>'
+		else :
+			snippet = ''
+		
+		re_img = re.compile('<img.*?>')
+		snippet = re_img.sub('', snippet)
+		print snippet
+		return snippet 
+	except StaleElementReferenceException:
+		print 'Selenium Error!'
+		return
+	except TimeoutException:
+		print 'Timeout Error!'
+		return
+
+
 def taleo_sql_upload(worksheet, company) :
 	f = open('Result/'+ company + '.sql', 'a')
 	data = worksheet.get_all_values()
 	data.pop(0)
+	browser = webdriver.Firefox()
 	for row in data :
 		row[0] = MySQLdb.escape_string(row[0].strip())
 		row[1] = MySQLdb.escape_string(row[1].strip())
 		row[2] = MySQLdb.escape_string(row[2].strip())
 		row[3] = MySQLdb.escape_string(row[3].strip())
 		row[4] = MySQLdb.escape_string(row[4].strip())
-		row[5] = MySQLdb.escape_string(row[5].strip())
+
+		# Job snippet from worksheet
+		# row[5] = MySQLdb.escape_string(row[5].strip()) 
+		# Job snippet from live site
+		snippet = parse_job_details(browser, row[1].strip())
+		if snippet :
+			row[5] = MySQLdb.escape_string(snippet)
+		else :
+			continue
+
 		row[6] = MySQLdb.escape_string(row[6].strip())
 		if row[6] == 'Experienced' or row[6] == '':
 			continue
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Org_id, Loc_id, tags, Snippet) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), org1.ID, loc1.ID, \'{0[6]}\', \'{0[5]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[5]}\', tags = \'{0[6]}\';'''.format(row, company)
+		print job_sql
 		f.write(job_sql + '\n')
+
+	browser.quit()
 	f.close()
 
 def location_parse(spreadsheet_name) :
@@ -238,8 +287,8 @@ def sql_parse(spreadsheet_name, worksheet_name, company, taleo) :
 
 if __name__ == '__main__':
 	start_time = time.time()
-	spreadsheet_name = ''
-	worksheet_name = ''
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
+	worksheet_name = 'Copy of Test'
 
 	# -------------- Step 1: Location parse ------------------
 	# location_parse(job_sh)
@@ -259,6 +308,6 @@ if __name__ == '__main__':
 	# sql_parse(job_sh, '', False)
 	
 	worksheet = login(spreadsheet_name, worksheet_name)
-	taleo_sql_upload(worksheet, 'Honeywell International Inc.')
+	taleo_sql_upload(worksheet, 'FedEx Corporation (FedEx)')
 
 	print("--- %s seconds ---" % (time.time() - start_time))

@@ -71,14 +71,19 @@ if __name__ == '__main__':
 	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
 
 	# --------- Download Locastions from Job Search Result --------------
-	location_worksheet_name = 'Test'
-	loc_worksheet = login(spreadsheet_name, location_worksheet_name)
-	location_list = download_location_list(loc_worksheet)
+	# location_worksheet_name = 'Test'
+	# loc_worksheet = login(spreadsheet_name, location_worksheet_name)
+	# location_list = download_location_list(loc_worksheet)
+
+	# # -------- Download to local csv file --------
+	# writer = csv.writer(open('Result/Locations.csv', 'w'))
+	# for item in location_list :
+	# 	writer.writerow(item)
 
 	# --------- Send Query to Google Geocoding API --------------
 	result_worksheet_name = 'Test_location'
 	result_worksheet = login(spreadsheet_name, result_worksheet_name)
-	update_spreadsheet(result_worksheet, location_list)
+	# update_spreadsheet(result_worksheet, location_list)
 
 	# --------- Translate Locations into SQL --------------
 	upload_location(result_worksheet)
