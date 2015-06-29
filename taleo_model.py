@@ -8,6 +8,7 @@ import json
 import gspread
 import time
 from time import sleep
+from File.file import *
 from oauth2client.client import SignedJwtAssertionCredentials
 from Geolocation.geolocation_reference import get_abbreviation
 from selenium import webdriver
@@ -246,8 +247,8 @@ if __name__ == '__main__':
 		writer.writerow(item)
 
 	# -------- Upload result to spreadsheet
-	ws = login(spreadsheet_name, worksheet_name)
-	update_spreadsheet(parsed_data, 0, ws)
+	header_line = ['Job Title', 'Job Url', 'City', 'State',	'Country', 'Snippet', 'Tags']
+	write_spreadsheet(spreadsheet_name, worksheet_name, header_line, parsed_data)
 
 	# -------- Parse job detail page (spreadsheet update included)-----------
 	browser = webdriver.Firefox()
