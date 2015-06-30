@@ -133,6 +133,10 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# 	button_moreJobs = None
 	# 	sleep(1.7)
 	# sleep(5)
+
+	# ------------ Switch to inner iframe if exists ----------
+	# browser.switch_to.frame(browser.find_element_by_tag_name('iframe'))
+
 	
 	try : 
 		# ------------ Parse all pages of search result ------------
@@ -157,7 +161,7 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 						tags += tag_job(title, tag_keyword_dict_2)
 						tags_list = ','.join(list(set(tags)))
 				result.append([title, url] + location + ['', tags_list])
-
+		return result 
 	except :
 		return result
 
