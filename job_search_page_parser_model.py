@@ -136,33 +136,30 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# ------------ Switch to inner iframe if exists ----------
 	# browser.switch_to.frame(browser.find_element_by_tag_name('iframe'))
 
-	
-	try : 
-		# ------------ Parse all pages of search result ------------
-		for i in range(0, num_of_pages) :
-			pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
-			if i != 0 :
-				pager.click()
-			browser.implicitly_wait(3)
+	# ------------ Parse all pages of search result ------------
+	for i in range(0, num_of_pages) :
+		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
+		if i != 0 :
+			pager.click()
+		browser.implicitly_wait(3)
 
-			table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
-			jobs = table.find_elements_by_tag_name('tr')
-			for job in jobs :
-				title = job.find_element_by_tag_name('a').text
-				url = job.find_element_by_tag_name('a').get_attribute('href')
-				print title + '......' + url + '......Done'
-				location = parse_job_location()
-				if check_if_exists(title, remove_keyword_dict) :
-					tags_list = 'Experienced'
-				else :
-					tags = tag_job(title, tag_keyword_dict_1)
-					if tags != '' :
-						tags += tag_job(title, tag_keyword_dict_2)
-						tags_list = ','.join(list(set(tags)))
-				result.append([title, url] + location + ['', tags_list])
-		return result 
-	except :
-		return result
+		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
+		jobs = table.find_elements_by_tag_name('tr')
+		for job in jobs :
+			title = job.find_element_by_tag_name('a').text
+			url = job.find_element_by_tag_name('a').get_attribute('href')
+			print title + '......' + url + '......Done'
+			location = parse_job_location()
+			if check_if_exists(title, remove_keyword_dict) :
+				tags_list = 'Experienced'
+			else :
+				tags = tag_job(title, tag_keyword_dict_1)
+				if tags != '' :
+					tags += tag_job(title, tag_keyword_dict_2)
+					tags_list = ','.join(list(set(tags)))
+			result.append([title, url] + location + ['', tags_list])
+		table = None
+	return result 
 
 
 def parse_job_location(location) :
