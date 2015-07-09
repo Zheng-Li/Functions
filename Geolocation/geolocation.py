@@ -12,7 +12,7 @@ import getopt
 import gspread
 
 URL = 'https://maps.googleapis.com/maps/api/geocode/json?address=' 
-API_KEY = 'AIzaSyCvDjxeQsg3NdNc1SJDazJ2MZSpX8ISFB4'
+API_KEY = 'AIzaSyAW3GX8hrAuoET8ESMA8rB8Y7AXqTHMH6I'
 
 def read_file(file_name):
 	f = csv.reader(open(file_name, 'rU'))

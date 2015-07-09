@@ -67,7 +67,7 @@ def download_location_list(worksheet) :
 	for item in locations :
 		tmp = send_request_by_location(item[0], item[1], item[2])
 		result.append(tmp)
-		# print tmp
+		print tmp
 	return result
 
 
@@ -175,14 +175,14 @@ def upload_jobs(worksheet, company, target) :
 
 if __name__ == '__main__':
 	start_time = time.time()
-	spreadsheet_name = 'Organization Parsing Project 03'
-	worksheet_name = 'Copy of ebay inc.'
+	spreadsheet_name = ''
+	worksheet_name = ''
 	worksheet = login(spreadsheet_name, worksheet_name)
 
 	# -------------- Step 1: Location parse (with SQL) <City, State, Abbr, Country, Latitude, Longitude> ------------------
-	loc_list = download_location_list(worksheet)
-	for loc in loc_list :
-		upload_location(loc)
+	# loc_list = download_location_list(worksheet)
+	# for loc in loc_list :
+	# 	upload_location(loc)
 
 	# -------------- Step 2: Snippet parse (with SQL) -----------------
 	# company_name = ''

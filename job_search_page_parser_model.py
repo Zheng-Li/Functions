@@ -246,7 +246,7 @@ if __name__ == '__main__':
 	for item in parsed_data :
 		writer.writerow(item)
 
-	# -------- Upload result to spreadsheet
+	# -------- Upload result to spreadsheet -----------
 	header_line = ['Job Title', 'Job Url', 'City', 'State',	'Country', 'Snippet', 'Tags']
 	write_spreadsheet(spreadsheet_name, worksheet_name, header_line, parsed_data)
 
