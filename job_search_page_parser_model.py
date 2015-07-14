@@ -153,8 +153,9 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 			if check_if_exists(title, remove_keyword_dict) :
 				tags_list = 'Experienced'
 			else :
+				tags_list = ''
 				tags = tag_job(title, tag_keyword_dict_1)
-				if tags != '' :
+				if tags :
 					tags += tag_job(title, tag_keyword_dict_2)
 					tags_list = ','.join(list(set(tags)))
 			result.append([title, url] + location + ['', tags_list])
@@ -170,15 +171,15 @@ def parse_job_location(location) :
 
 	loc = re.split('', location)
 
-	if 'US' in country :
+	if country.lower() == 'us':
 		country = 'USA'
-	elif 'United States' in country :
+	elif country.lower() == 'united states' :
 		country = 'USA'
-	elif 'United Kingdom' in country :
+	elif country.lower() == 'united kingdom' :
 		country = 'UK'
-	elif 'United Arab Emirates' in country :
+	elif country.lower() == 'united arab emirates' :
 		country = 'UAE'
-	elif 'Great Britain' in country :
+	elif country.lower() == 'great britain' :
 		country = 'UK'
 
 	parsed_loc = [city, abbr, country]
