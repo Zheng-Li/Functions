@@ -94,10 +94,10 @@ def load_tag_keywords () :
 
 def tag_job (title, keyword_dict) :
 	tag_list = []
-	title = re.escape(title.strip().lower())
+	title = title.strip().lower()
 	for ky in keyword_dict.keys() :
-		ky = re.escape(ky)
-		reg = '\\b' + ky + '[,.]?\\b'
+		ky_tmp = re.escape(ky)
+		reg = '\\b' + ky_tmp + '[,.]?\\b'
 		result = re.search(reg, title)  
 		if result is not None :
 			tag_list.append(ky)

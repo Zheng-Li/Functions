@@ -57,6 +57,7 @@ abbr = {
 	'ON' :	'Ontario',
 	'BC' :	'British Columbia',
 	'QC' :	'Quebec',
+	'AB' :	'Alberta',
 }
 
 def get_full_name(abbrevation) :
