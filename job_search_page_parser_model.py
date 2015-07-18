@@ -199,6 +199,15 @@ def parse_job_details(browser, worksheet) :
 				snippet = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "job")))
 				snippet = snippet.get_attribute('innerHTML')
 
+				re_img = re.compile('<img\b(.*?)>')
+				snippet = re_img.sub('', snippet)
+
+				re_href = re.compile('<a\b[^>]*>(.*?)<\/a>')
+				snippet = re_href.sub('', snippet)
+
+				re_input = re.compile('<input\b(.*?)>')
+				snippet = re_input.sub('', snippet)
+
 				# ------------- Trim for necessary part ----------------
 				# soup = BeautifulSoup(snippet)
 				# trimed_data = soup.find_all('div', {'class' : 'contentlinepanel'})[:1]
