@@ -36,3 +36,5 @@ if __name__ == '__main__':
 	f.close()
 
 	print("--- %s seconds ---" % (time.time() - start_time))
+
+	

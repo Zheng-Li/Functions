@@ -39,6 +39,7 @@ def check_url_status(url) :
 		if page.getcode()>300 and page.getcode()!=304:
 			print 'Error:' + page.getcode()
 			return False
+		print 'Correct Response Code: ' + page.getcode()
 		return True
 	except urllib2.URLError, e:
 		print 'Page error!'
@@ -71,62 +72,6 @@ def download_location_list(worksheet) :
 	return result
 
 
-def load_remove_keywords () :
-	spreadsheet_name = 'Test Project'
-	worksheet_name = 'Keywords_Jobs to Remove'
-	ws = login(spreadsheet_name, worksheet_name)
-
-	keyword_dict = ws.col_values(1)
-
-	return keyword_dict
-
-def check_if_exists (title, keyword_dict) :
-	if any (keyword.strip().lower() in title.lower() for keyword in keyword_dict) :
-		return True
-	else :
-		return False
-
-def load_tag_keywords_1 () :
-	spreadsheet_name = 'Test Project'
-	worksheet_name = 'Keywords Page 1 Job Tags June 6'
-	ws = login(spreadsheet_name, worksheet_name)
-
-	keyword_dict = {}
-
-	raw_data = ws.get_all_values()
-	for row in raw_data :
-		key = row.pop(0).strip().lower()
-		values = filter(None, row)
-		keyword_dict[key] = [x.lower() for x in values]
-
-	return  keyword_dict
-
-def load_tag_keywords_2 () :
-	spreadsheet_name = 'Test Project'
-	worksheet_name = 'Keywords Page 2 Job Tags June 6'
-	ws = login(spreadsheet_name, worksheet_name)
-
-	keyword_dict = {}
-
-	raw_data = ws.get_all_values()
-	for row in raw_data :
-		key = row.pop(0).strip().lower()
-		values = filter(None, row)
-		keyword_dict[key] = [x.lower() for x in values]
-
-	return  keyword_dict
-
-def add_tags (title, keyword_dict) :
-	tag_list = []
-	for ky in keyword_dict.keys() :
-		if ky.strip().lower() in title.lower() :
-			tag_list.append(ky)
-			tag_list += keyword_dict[ky]
-
-	tags = list(set(tag_list))
-	return tags
-
-
 def parse_job_details(browser, url, target) :
 	browser.get(url)
 	try :
@@ -155,8 +100,8 @@ def upload_jobs(worksheet, company, target) :
 		row[4] = MySQLdb.escape_string(row[4].strip())
 		row[6] = MySQLdb.escape_string(row[6].strip())
 
+		check_url_status(row[1].strip())
 		snippet = parse_job_details(browser, row[1].strip(), target)
-		print snippet
 		if snippet :
 			row[5] = MySQLdb.escape_string(snippet)
 		else :
@@ -166,7 +111,7 @@ def upload_jobs(worksheet, company, target) :
 			continue
 
 		job_sql = '''INSERT INTO zd_new_job(Title, Url, Url_status, Created_on, Org_id, Loc_id, Snippet, tags) SELECT \'{0[0]}\', \'{0[1]}\', 200, CURDATE(), org1.ID, loc1.ID, \'{0[5]}\', \'{0[6]}\' FROM zd_new_organization AS org1, zd_new_location AS loc1 WHERE org1.Name = \'{1}\' AND loc1.City = \'{0[2]}\' AND loc1.Abbreviation = \'{0[3]}\' AND loc1.Country = \'{0[4]}\' ON DUPLICATE KEY UPDATE Snippet = \'{0[5]}\', tags = \'{0[6]}\';'''.format(row, company)
-		# print job_sql
+		print job_sql
 		f.write(job_sql + '\n')
 
 	browser.quit()

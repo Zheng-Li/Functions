@@ -35,11 +35,15 @@ def login(spreadsheet, worksheet) :
 	return ws
 
 
-def check_if_exists (title, keyword_dict) :
-	if any (keyword.lower() in title.lower() for keyword in keyword_dict) :
-		return True
-	else :
-		return False
+def check_if_exists (title, remove_keyword_dict) :
+	title = title.strip().lower()
+	for ky in remove_keyword_dict :
+		ky_tmp = re.escape(ky.strip().lower())
+		reg = '\\b' + ky_tmp + '[,.]?\\b'
+		result = re.search(reg, title)  
+		if result :
+			return True
+	return False
 
 
 def load_remove_keywords () :
@@ -79,7 +83,7 @@ def load_tag_keywords () :
 
 def load_special_tag_keywords () :
 	spreadsheet_name = 'Test Project'
-	worksheet_name = 'Tech Related Architecture, Design Keywords'
+	worksheet_name = 'Tech Related Architecture Keywords'
 	ws = login(spreadsheet_name, worksheet_name)
 	keyword_dict = {}
 
@@ -87,8 +91,6 @@ def load_special_tag_keywords () :
 	del raw_data[0]
 	for row in raw_data :
 		del row[0]
-		del row[-1]
-		del row[-1]
 		key = row.pop(0).lower().strip()
 		values = filter(None, row)
 		keyword_dict[key] = [x.lower() for x in values]
@@ -102,7 +104,7 @@ def tag_job (title, keyword_dict) :
 	for ky in keyword_dict.keys() :
 		ky_tmp = re.escape(ky)
 		reg = '\\b' + ky_tmp + '[,.]?\\b'
-		result = re.search(reg, title)  
+		result = re.search(reg, title.encode('utf-8'))  
 		if result :
 			tag_list.append(ky)
 			tag_list += keyword_dict[ky]
@@ -136,7 +138,7 @@ if __name__ == '__main__':
 	special_keyword_dict = load_special_tag_keywords()
 
 	spreadsheet_name = 'Organization Parsing Project 01'
-	worksheet_name = 'Abbott Laboratories'
+	worksheet_name = 'Deloitte'
 	title_col = 1
 
 	worksheet = login(spreadsheet_name, worksheet_name)
@@ -177,23 +179,5 @@ if __name__ == '__main__':
 		print tags
 
 	print("--- %s seconds ---" % (time.time() - start_time))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

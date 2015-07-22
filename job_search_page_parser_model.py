@@ -61,16 +61,20 @@ def load_remove_keywords () :
 
 	return keyword_dict
 
-def check_if_exists (title, keyword_dict) :
-	if any (keyword.lower() in title.lower() for keyword in keyword_dict) :
-		return True
-	else :
-		return False
+def check_if_exists (title, remove_keyword_dict) :
+	title = title.strip().lower()
+	for ky in remove_keyword_dict :
+		ky_tmp = re.escape(ky)
+		reg = '\\b' + ky_tmp + '[,.]?\\b'
+		result = re.search(reg, title)  
+		if result :
+			return True
+	return False
 
 def load_tag_keywords () :
 	spreadsheet_name = 'Test Project'
 
-	worksheet_name_1 = 'Keywords Page 1 Job Tags June 6'
+	worksheet_name_1 = 'Keywords Page 1 Job Tags Noun'
 	ws_1 = login(spreadsheet_name, worksheet_name_1)
 	keyword_dict_1 = {}
 
@@ -80,7 +84,7 @@ def load_tag_keywords () :
 		values = filter(None, row)
 		keyword_dict_1[key] = [x.lower() for x in values]
 
-	worksheet_name_2 = 'Keywords Page 2 Job Tags June 6'
+	worksheet_name_2 = 'KKeywords Page 2 Job Tags Adjective'
 	ws_2 = login(spreadsheet_name, worksheet_name_2)
 	keyword_dict_2 = {}
 
@@ -99,7 +103,7 @@ def tag_job (title, keyword_dict) :
 		ky_tmp = re.escape(ky)
 		reg = '\\b' + ky_tmp + '[,.]?\\b'
 		result = re.search(reg, title)  
-		if result is not None :
+		if result :
 			tag_list.append(ky)
 			tag_list += keyword_dict[ky]
 
@@ -220,7 +224,7 @@ def parse_job_details(browser, worksheet) :
 				print 'Timeout Error!'
 				return
 				
-			if snippet is not None :
+			if snippet :
 				worksheet.update_acell('G'+str(x+2), snippet)
 				print 'Line No.' + str(x+2) + '.......' + url
 			else :

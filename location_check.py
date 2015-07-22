@@ -69,8 +69,8 @@ def country_check(country) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-	spreadsheet_name = 'Organization Parsing Project 01'
-	worksheet_name = 'Bloomberg'
+	spreadsheet_name = 'Organization Parsing Project 03'
+	worksheet_name = 'Unilever'
 	country_col = 5
 
 	worksheet = login(spreadsheet_name, worksheet_name)
@@ -81,15 +81,6 @@ if __name__ == '__main__':
 		print country_check(country)
 
 	print("--- %s seconds ---" % (time.time() - start_time))
-
-
-
-
-
-
-
-
-
 
 
 
