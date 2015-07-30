@@ -145,7 +145,8 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 		pager = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.CLASS_NAME, '')))  
 		if i != 0 :
 			pager.click()
-		browser.implicitly_wait(3)
+		browser.implicitly_wait(2)
+		sleep(3)
 
 		table = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '')))
 		jobs = table.find_elements_by_tag_name('tr')
@@ -192,6 +193,7 @@ def parse_job_location(location) :
 
 
 def parse_job_details(browser, worksheet) :
+	browser.set_page_load_timeout(5)
 	raw_data = worksheet.get_all_values()
 	raw_data.pop(0) # Remove header line from spreadsheet
 

@@ -84,14 +84,14 @@ if __name__ == "__main__":
 
 # ---------------------- Useful File ------------------------
 
-# SQL = '''
-	# SELECT City, State, Abbreviation, Country
-	# INTO OUTFILE '/tmp/location_fix.csv'
-	# FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
- #  	LINES TERMINATED BY '\n'
-	# FROM zd_new_location
-	# WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
-# 	'''
+SQL = '''
+	SELECT City, State, Abbreviation, Country
+	INTO OUTFILE '/tmp/location_fix.csv'
+	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+  	LINES TERMINATED BY '\n'
+	FROM zd_new_location
+	WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
+	'''
 
 # def main(argv):
 # 	input_file = ''
