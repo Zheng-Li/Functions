@@ -73,11 +73,7 @@ def write_spreadsheet(spreadsheet_name, worksheet_name, header_line, data_list) 
 if __name__ == '__main__':
 	start_time = time.time()
 
-	spreadsheet_name = 'Test'
-	worksheet_name = 'Test'
-
-	test_data = [['fjdskal;jfkdls', 'fdsax',  'fdsjka', 'jpiofow', 'fmdjklsa;jio', 'jovpdianiop'] for i in range(1000)]
-	write_spreadsheet(spreadsheet_name, worksheet_name, ['A','B','C','D'],  test_data)
+	print ''
 
 	print("--- %s seconds ---" % (time.time() - start_time))
 	

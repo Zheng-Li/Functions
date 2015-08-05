@@ -23,7 +23,7 @@ def login(spreadsheet, worksheet) :
 
 def download_location_list(worksheet) :
 	data_list = worksheet.get_all_values()
-	del data_list[0]
+	# del data_list[0]
 
 	location_list = []
 	for row in data_list :
@@ -87,13 +87,13 @@ if __name__ == '__main__':
 	# 	writer.writerow(item)
 
 	# --------- Send Query to Google Geocoding API --------------
-	result_worksheet_name = 'loc_result'
-	result_worksheet = login(spreadsheet_name, result_worksheet_name)
+	# result_worksheet_name = 'loc'
+	# result_worksheet = login(spreadsheet_name, result_worksheet_name)
 	# update_spreadsheet(result_worksheet, location_list)
 
 
 	# --------- Translate Locations into SQL --------------
-	upload_location(result_worksheet)
+	# upload_location(result_worksheet)
 
 
 

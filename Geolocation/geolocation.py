@@ -14,18 +14,6 @@ import gspread
 URL = 'https://maps.googleapis.com/maps/api/geocode/json?address=' 
 API_KEY = 'AIzaSyAW3GX8hrAuoET8ESMA8rB8Y7AXqTHMH6I'
 
-def read_file(file_name):
-	f = csv.reader(open(file_name, 'rU'))
-	raw_data = []
-	for row in f : 
-		raw_data.append([row[0], row[1], row[2], row[3]])
-	return raw_data
-
-def write_file(file_name, data):
-	f = csv.writer(open(file_name, 'wb', buffering=0))
-	for x in data :
-		f.writerow(x)
-
 # ----------- Location record(City, State, Country) --------------------
 def send_request_by_record(record):
 	address = record[0] + ',+' + record[1] + ',+' + record[2]
@@ -73,24 +61,19 @@ def parse_json(code) :
 
 if __name__ == "__main__":
 	# main(sys.argv[1:])
-	raw_data = read_file('location_fix.csv')
-	fixed_data = []
-	for row in raw_data :
-		fixed_data.append(send_request_by_location(row[0], row[2], row[3]))
-	write_file('location_fixed.csv', fixed_data)
-
-
+	print ''
 
 
 # ---------------------- Useful File ------------------------
 
 SQL = '''
-	SELECT City, State, Abbreviation, Country
-	INTO OUTFILE '/tmp/location_fix.csv'
+	SELECT ID, City, State, Abbreviation, Country, Latitude, Longitude
+	INTO OUTFILE '/var/tmp/locations.csv'
 	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
-  	LINES TERMINATED BY '\n'
+	LINES TERMINATED BY '\n'
 	FROM zd_new_location
-	WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0);
+	WHERE ID <> 149 AND (Latitude = 0 OR Longitude = 0)
+	ORDER BY City;
 	'''
 
 # def main(argv):
