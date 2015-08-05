@@ -1,9 +1,13 @@
 from File.file import *
+from SQL.sql_translate import *
 import time
 from time import sleep
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+
+def upload_sql(row) :
+	row 
 
 
 if __name__ == '__main__':
@@ -16,10 +20,18 @@ if __name__ == '__main__':
 	has_header = True
 
 	organization_list = read_spreadsheet(spreadsheet_name, worksheet_name, has_header)
-	print len(organization_list)
-	upload_list = organization_list[start_row-2 : end_row-1]
-	for row in upload_list :
-		print row[0] + '...' + row[2]
+	organization_list = organization_list[start_row-2 : end_row-1]
+
+	for row in organization_list :
+		row = filter(None, row)
+		name = row[0]
+		nickname = row[1]
+		url = row[2]
+		snippet = row[3]
+		tags = ','.join(row[4:])
+		organization = [name, url, tags, nickname, snippet]
+		print organization
+		upload_organization(organization)
 
 
 	print("--- %s seconds ---" % (time.time() - start_time))
