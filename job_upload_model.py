@@ -2,6 +2,8 @@
 import requests
 import gspread
 import time
+import socket
+import httplib 
 import urllib2
 import json
 import re
@@ -18,7 +20,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import TimeoutException
-from keyword_search import keyword_search
+from time import sleep
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -100,9 +102,23 @@ def upload_jobs(worksheet, company, target) :
 		row[4] = MySQLdb.escape_string(row[4].strip())
 		row[6] = MySQLdb.escape_string(row[6].strip())
 
-		check_url_status(row[1].strip())
+		# check_url_status(row[1].strip())
 		snippet = parse_job_details(browser, row[1].strip(), target)
+
 		if snippet :
+
+			re_img = re.compile('<img\\b[^>]*>.*?>')
+			snippet = re_img.sub('', snippet)
+
+			re_href = re.compile('<a\\b[^>]*>.*?<\\/a>')
+			snippet = re_href.sub('', snippet)
+
+			re_input = re.compile('<input\\b[^>]*>.*?>')
+			snippet = re_input.sub('', snippet)
+
+			re_iframe = re.compile('<iframe\\b[^>]*>.*?<\\/a>')
+			snippet = re_iframe.sub('', snippet)
+
 			row[5] = MySQLdb.escape_string(snippet)
 		else :
 			continue
@@ -120,19 +136,19 @@ def upload_jobs(worksheet, company, target) :
 
 if __name__ == '__main__':
 	start_time = time.time()
-	spreadsheet_name = ''
+	spreadsheet_name = 'Organization Parsing New Companies from Carol_May2015'
 	worksheet_name = ''
 	worksheet = login(spreadsheet_name, worksheet_name)
 
 	# -------------- Step 1: Location parse (with SQL) <City, State, Abbr, Country, Latitude, Longitude> ------------------
-	# loc_list = download_location_list(worksheet)
-	# for loc in loc_list :
-	# 	upload_location(loc)
+	loc_list = download_location_list(worksheet)
+	for loc in loc_list :
+		upload_location(loc)
 
 	# -------------- Step 2: Snippet parse (with SQL) -----------------
-	# company_name = ''
-	# target_path = ''  
-	# upload_jobs(worksheet, company_name, target_path)
+	company_name = worksheet_name
+	target_path = ''  
+	upload_jobs(worksheet, company_name, target_path)
 
 
 	print("--- %s seconds ---" % (time.time() - start_time))

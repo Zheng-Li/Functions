@@ -138,7 +138,7 @@ def parse_job_search_page(browser, keyword, num_of_pages) :
 	# browser.implicitly_wait(2)
 
 	# ------------ Switch to inner iframe if exists ----------
-	# browser.switch_to.frame(browser.find_element_by_tag_name('iframe'))
+	# browser.switch_to.frame(WebDriverWait(browser, 5).until(EC.presense_of_element_located((By.TAG_NAME, ''))))
 
 	# ------------ Parse all pages of search result ------------
 	for i in range(0, num_of_pages) :
