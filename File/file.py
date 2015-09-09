@@ -10,8 +10,8 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-def login(spreadsheet, worksheet) :
-	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+def login(credentials_file, spreadsheet, worksheet) :
+	json_key = json.load(open(credentials_file))
 	scope = ['https://spreadsheets.google.com/feeds']
 
 	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
@@ -32,8 +32,8 @@ def read_csv(csv_file_name, has_header) :
 	return data_list
 
 
-def read_spreadsheet(spreadsheet_name, worksheet_name, has_header) :
-	ws = login(spreadsheet_name, worksheet_name)
+def read_spreadsheet(credentials_file, spreadsheet_name, worksheet_name, has_header) :
+	ws = login(credentials_file, spreadsheet_name, worksheet_name)
 	data_list = ws.get_all_values()
 
 	if has_header :
@@ -49,8 +49,8 @@ def write_csv(csv_file_name, header_line, data_list) :
 	for row in data_list :
 		writer.writerow(row)
 
-def write_spreadsheet(spreadsheet_name, worksheet_name, header_line, data_list) :
-	worksheet = login(spreadsheet_name, worksheet_name)
+def write_spreadsheet(credentials_file, spreadsheet_name, worksheet_name, header_line, data_list) :
+	worksheet = login(credentials_file, spreadsheet_name, worksheet_name)
 
 	# -------- Header (if exists)-----------
 	if header_line : 
@@ -73,6 +73,7 @@ def write_spreadsheet(spreadsheet_name, worksheet_name, header_line, data_list) 
 if __name__ == '__main__':
 	start_time = time.time()
 
+	credentials_file = 'zheng-6cef143e8ce1.json'
 	print ''
 
 	print("--- %s seconds ---" % (time.time() - start_time))

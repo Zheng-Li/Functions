@@ -12,8 +12,8 @@ reload(sys)
 sys.setdefaultencoding("utf-8")
 
 
-def login(spreadsheet, worksheet) :
-	json_key = json.load(open('zheng-6cef143e8ce1.json'))
+def login(credentials_file, spreadsheet, worksheet) :
+	json_key = json.load(open(credentials_file))
 	scope = ['https://spreadsheets.google.com/feeds']
 
 	credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
@@ -69,8 +69,9 @@ def country_check(country) :
 if __name__ == '__main__':
 	start_time = time.time()
 
-	spreadsheet_name = 'Organization Parsing Project 03'
-	worksheet_name = 'Unilever'
+	credentials_file = 'zheng-6cef143e8ce1.json'
+	spreadsheet_name = ''
+	worksheet_name = ''
 	country_col = 5
 
 	worksheet = login(spreadsheet_name, worksheet_name)

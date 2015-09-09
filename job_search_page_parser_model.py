@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
 	# -------- Upload result to spreadsheet -----------
 	header_line = ['Job Title', 'Job Url', 'City', 'State',	'Country', 'Snippet', 'Tags']
-	write_spreadsheet(spreadsheet_name, worksheet_name, header_line, parsed_data)
+	write_spreadsheet(credentials_file, spreadsheet_name, worksheet_name, header_line, parsed_data)
 
 	# ++++++++ Parse job detail page (Deprecated) ++++++++++
 	# browser = webdriver.Firefox()
